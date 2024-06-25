@@ -1,4 +1,4 @@
-spring.application.name=captionmaker
+spring.application.name=kikhabo
 google.gemini.apikey=<your gemini api key>
 google.gemini.endpoint=https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent
 logging.level.root=DEBUG

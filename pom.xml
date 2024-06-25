@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.iishanto</groupId>
-	<artifactId>captionmaker</artifactId>
+	<artifactId>kikhabo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>captionmaker</name>
+	<name>kikhabo</name>
 	<description>An AI project that generate image caption</description>
 	<url/>
 	<licenses>
