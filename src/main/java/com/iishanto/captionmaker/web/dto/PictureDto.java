@@ -1,14 +1,11 @@
 package com.iishanto.captionmaker.web.dto;
 
 import com.iishanto.captionmaker.domain.entities.multimedia.Picture;
-import com.iishanto.captionmaker.domain.entities.text.Prompt;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor

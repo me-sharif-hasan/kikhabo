@@ -37,7 +37,8 @@ public class ChatBotDataSourceImpl implements ChatBotDataSource {
         promptResponse.setStatus(ourServerResponseNode.get("status").asText());
         promptResponse.setError(ourServerResponseNode.get("error").asText());
         promptResponse.setCount(ourServerResponseNode.get("count").asInt());
-        List <PromptResponse.ImageData> images=objectMapper.convertValue(ourServerResponseNode.get("images"),new TypeReference<List<PromptResponse.ImageData>>() {});
+        List <PromptResponse.ImageData> images=objectMapper.convertValue(ourServerResponseNode.get("images"), new TypeReference<>() {
+        });
         promptResponse.setImages(images);
 
         return promptResponse;
@@ -47,7 +48,7 @@ public class ChatBotDataSourceImpl implements ChatBotDataSource {
         prompt.setMessage(
                 """
                     System Seed: %d
-                    Suppose you are a api server. you are provided %d images. You have to give each of them 
+                    Suppose you are a api server. you are provided %d images. You have to give each of them
                     * a <title> with max 20 words non empty,
                     * a <description> with max 100 words non empty,
                     * some <tags> which is a list with max size 50. each tag is maximum 3 words.
