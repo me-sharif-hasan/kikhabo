@@ -8,7 +8,7 @@ import com.iishanto.kikhabo.domain.datasource.ChatBotDataSource;
 import com.iishanto.kikhabo.domain.entities.text.Prompt;
 import com.iishanto.kikhabo.domain.entities.text.PicturePromptResponse;
 import com.iishanto.kikhabo.infrastructure.external.ai.ChatBotApi;
-import com.iishanto.kikhabo.infrastructure.model.AiPromptModel;
+import com.iishanto.kikhabo.infrastructure.prompt.PromptProvider;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
@@ -20,26 +20,30 @@ import java.util.List;
 public class ChatBotDataSourceImpl implements ChatBotDataSource {
     ChatBotApi chatBotApi;
     ObjectMapper objectMapper;
+    PromptProvider promptProvider;
     Logger logger;
     @Override
     public PicturePromptResponse prompt(Prompt prompt) throws JsonProcessingException {
-        AiPromptModel aiPromptModel=new AiPromptModel(prompt);
-        String bardResponse = chatBotApi.request(aiPromptModel.getBardPrompt());
+        String bardResponse = chatBotApi.request(promptProvider.getPrompt(prompt));
+        logger.debug("Bard response: {}",bardResponse);
         JsonNode bardJson = objectMapper.readTree(bardResponse);
         JsonNode myOutput = bardJson.get("candidates").get(0).get("content").get("parts").get(0).get("text");
-        String willBeOurServerResponse=myOutput.asText();
+        String geminiResponse=myOutput.asText();
+        logger.info("GEMINI Responded :- {}",geminiResponse);
+        return convertResponse(geminiResponse);
+    }
 
-        willBeOurServerResponse=willBeOurServerResponse.substring(willBeOurServerResponse.indexOf("{"),willBeOurServerResponse.lastIndexOf("}")+1);
-        logger.debug(STR."GEMINI RESPONED :- \{willBeOurServerResponse}");
+    private PicturePromptResponse convertResponse(String geminiResponse) throws JsonProcessingException {
+        String willBeOurServerResponse=geminiResponse.substring(geminiResponse.indexOf("{"),geminiResponse.lastIndexOf("}")+1);
         JsonNode ourServerResponseNode=objectMapper.readTree(willBeOurServerResponse);
-        PicturePromptResponse picturePromptResponse =new PicturePromptResponse();
-        picturePromptResponse.setStatus(ourServerResponseNode.get("status").asText());
-        picturePromptResponse.setError(ourServerResponseNode.get("error").asText());
-        picturePromptResponse.setCount(ourServerResponseNode.get("count").asInt());
-        List <PicturePromptResponse.ImageData> images=objectMapper.convertValue(ourServerResponseNode.get("images"), new TypeReference<>() {
-        });
-        picturePromptResponse.setImages(images);
-
-        return picturePromptResponse;
+        logger.info(ourServerResponseNode.toPrettyString());
+//        PicturePromptResponse picturePromptResponse =new PicturePromptResponse();
+//        picturePromptResponse.setStatus(ourServerResponseNode.get("status").asText());
+//        picturePromptResponse.setError(ourServerResponseNode.get("error").asText());
+//        picturePromptResponse.setCount(ourServerResponseNode.get("count").asInt());
+//        List <PicturePromptResponse.ImageData> images=objectMapper.convertValue(ourServerResponseNode.get("images"), new TypeReference<>() {
+//        });
+//        picturePromptResponse.setImages(images);
+        return null;
     }
 }

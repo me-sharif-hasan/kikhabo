@@ -13,4 +13,5 @@ import java.util.List;
 public class Prompt extends SchemaEntity {
     private String message;
     private List<Picture> pictures;
+    private MealPreferenceData mealPreferenceData;
 }
