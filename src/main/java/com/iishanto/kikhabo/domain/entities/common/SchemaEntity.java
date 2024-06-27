@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public abstract class SchemaEntity {
-    public String getSchema() {
+    public String generateSchema() {
         Field[] fields = getClass().getDeclaredFields();
         String descriptor = Arrays.stream(fields).map(field ->
                 """

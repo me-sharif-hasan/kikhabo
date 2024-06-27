@@ -32,7 +32,7 @@ public class GroceryPlanningPromptResponse extends SchemaEntity {
             Float totalEnergy;
             String note;
             String ingredients;
-            List<Groceries> groceries;
+            Groceries groceries;
             @EqualsAndHashCode(callSuper = true)
             @AllArgsConstructor
             @NoArgsConstructor
