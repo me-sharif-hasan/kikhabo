@@ -1,9 +1,10 @@
+# Use Ubuntu latest
 FROM ubuntu:latest
-LABEL authors="Sharif"
 
+# Update package repository and install necessary packages
 RUN apt-get update && \
     apt-get install -y \
-    openjdk-22-jdk \
+    openjdk-21-jdk \
     maven
 
 # Set working directory
