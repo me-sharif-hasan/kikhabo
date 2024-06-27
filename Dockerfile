@@ -3,7 +3,7 @@ LABEL authors="Sharif"
 
 RUN apt-get update && \
     apt-get install -y \
-    openjdk-21-jdk \
+    openjdk-22-jdk \
     maven
 
 # Set working directory
