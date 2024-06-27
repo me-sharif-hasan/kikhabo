@@ -14,7 +14,7 @@ public class kikhaboApplication {
 		Environment env = appContext.getEnvironment();
 // env.getProperty() works!!!
 		String temp = env.getProperty("GEMINI_KEY");
-		System.out.println(temp) ;
+		System.out.println("GEMINI KEY: "+temp) ;
 
 		SpringApplication.run(kikhaboApplication.class, args);
 	}
