@@ -19,6 +19,6 @@ WORKDIR /app
 
 # Copy the JAR file from the build stage
 COPY --from=build /app/target/kikhabo.jar /app/kikhabo.jar
-
+EXPOSE 8080
 # Specify the command to run the JAR file
 CMD ["java", "-jar", "kikhabo.jar"]
