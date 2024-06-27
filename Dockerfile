@@ -1,14 +1,18 @@
 FROM ubuntu:latest
 LABEL authors="Sharif"
 
-RUN apt-get install -y \
-    openjdk-22-jdk \
+RUN apt-get update && \
+    apt-get install -y \
+    openjdk-21-jdk \
     maven
 
+# Set working directory
 WORKDIR /app
 
+# Copy the entire project directory into the Docker container
 COPY . .
 
+# Build the Spring Boot application using Maven
 RUN mvn -f pom.xml clean package
 
 # Expose the port the app runs on
