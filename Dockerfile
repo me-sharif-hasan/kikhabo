@@ -1,23 +1,24 @@
-# Use Ubuntu latest
-FROM ubuntu:latest
+# Stage 1: Build the JAR file
+FROM jelastic/maven:3.9.5-openjdk-21 as build
 
-# Update package repository and install necessary packages
-RUN apt-get update && \
-    apt-get install -y \
-    openjdk-21-jdk \
-    maven
-
-# Set working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy the entire project directory into the Docker container
-COPY . .
+# Copy the pom.xml and source code to the container
+COPY pom.xml .
+COPY src ./src
 
-# Build the Spring Boot application using Maven
-RUN mvn -f pom.xml clean package
+# Build the project and package it as a JAR
+RUN mvn clean package
 
-# Expose the port the app runs on
-EXPOSE 8080
+# Stage 2: Run the JAR file
+FROM openjdk:21-jdk
 
-# Define the command to run your application
-ENTRYPOINT ["mvn", "spring-boot:run"]
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the JAR file from the build stage
+COPY --from=build /app/target/kikhabo.jar /app/kikhabo.jar
+
+# Specify the command to run the JAR file
+CMD ["java", "-jar", "kikhabo.jar"]
