@@ -1,5 +1,7 @@
 package com.iishanto.kikhabo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -8,13 +10,12 @@ import org.springframework.core.env.Environment;
 
 @SpringBootApplication
 public class kikhaboApplication {
-
+	static Logger logger= LoggerFactory.getLogger("KI KHABO");
 	public static void main(String[] args) {
 		ApplicationContext appContext = new AnnotationConfigApplicationContext();
 		Environment env = appContext.getEnvironment();
-// env.getProperty() works!!!
 		String temp = env.getProperty("GEMINI_KEY");
-		System.out.println("GEMINI KEY: "+temp) ;
+		logger.info("GEMINI KEY: {}",temp);
 
 		SpringApplication.run(kikhaboApplication.class, args);
 	}
