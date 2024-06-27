@@ -1,6 +1,7 @@
 package com.iishanto.kikhabo.infrastructure.data;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iishanto.kikhabo.domain.datasource.ChatBotDataSource;
 import com.iishanto.kikhabo.domain.entities.text.Prompt;
@@ -19,15 +20,14 @@ public class ChatBotDataSourceImpl implements ChatBotDataSource {
     Logger logger;
     @Override
     public String prompt(Prompt prompt) throws JsonProcessingException {
-//        String bardResponse = chatBotApi.request(promptProvider.getPrompt(prompt));
-//        logger.debug("Bard response: {}",bardResponse);
-//        JsonNode bardJson = objectMapper.readTree(bardResponse);
-//        JsonNode myOutput = bardJson.get("candidates").get(0).get("content").get("parts").get(0).get("text");
-//        String geminiResponse=myOutput.asText();
-//        logger.info("GEMINI Responded :- {}",geminiResponse);
-//        String willBeOurServerResponse=geminiResponse.substring(geminiResponse.indexOf("{"),geminiResponse.lastIndexOf("}")+1);
-//        return willBeOurServerResponse;
-        return convertResponse("geminiResponse");
+        String bardResponse = chatBotApi.request(promptProvider.getPrompt(prompt));
+        logger.debug("Bard response: {}",bardResponse);
+        JsonNode bardJson = objectMapper.readTree(bardResponse);
+        JsonNode myOutput = bardJson.get("candidates").get(0).get("content").get("parts").get(0).get("text");
+        String geminiResponse=myOutput.asText();
+        logger.info("GEMINI Responded :- {}",geminiResponse);
+        return geminiResponse.substring(geminiResponse.indexOf("{"),geminiResponse.lastIndexOf("}")+1);
+//        return convertResponse("geminiResponse");
     }
 
     private String convertResponse(String geminiResponse) throws JsonProcessingException {
