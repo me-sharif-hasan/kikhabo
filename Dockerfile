@@ -1,5 +1,5 @@
 # Stage 1: Build the JAR file
-FROM jelastic/maven:3.9.5-openjdk-21 as build
+FROM maven:3.9.5-sapmachine-21 as build
 ENV GEMINI_KEY=$GEMINI_KEY
 # Set the working directory in the container
 WORKDIR /app
