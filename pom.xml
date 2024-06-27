@@ -65,7 +65,7 @@
 			<version>2.3.0</version>
 		</dependency>
 	</dependencies>
-
+	<packaging>jar</packaging>
 	<build>
 		<plugins>
 			<plugin>
@@ -73,6 +73,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<finalName>kikhabo</finalName>
 	</build>
 
 </project>
