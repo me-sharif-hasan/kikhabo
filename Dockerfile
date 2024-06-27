@@ -18,7 +18,7 @@ FROM openjdk:21-jdk
 WORKDIR /app
 
 # Copy the JAR file from the build stage
-COPY --from=build /target/kikhabo.jar /app/kikhabo.jar
+COPY --from=build /app/target/kikhabo.jar /app/kikhabo.jar
 
 # Specify the command to run the JAR file
 CMD ["java", "-jar", "kikhabo.jar"]
