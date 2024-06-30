@@ -21,7 +21,7 @@ public class UserDto {
     @Email
     private String email;
     @NotEmpty
-    @Length(min = 8)
+    @Length(min = 8,max = 128)
     private String password;
     @NotEmpty
     private String firstName;
@@ -32,6 +32,7 @@ public class UserDto {
     @NotEmpty
     private String gender;
 
+    @NotEmpty
     private String dateOfBirth;
     private Float weightInKg;
     private Float heightInFt;
