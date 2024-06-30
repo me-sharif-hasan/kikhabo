@@ -2,14 +2,13 @@ package com.iishanto.kikhabo.web.controller.v1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.iishanto.kikhabo.domain.entities.text.GroceryPlanningPromptResponse;
-import com.iishanto.kikhabo.domain.usercase.GenerateMealSuggestionUseCase;
+import com.iishanto.kikhabo.domain.usercase.meal.GenerateMealSuggestionUseCase;
 import com.iishanto.kikhabo.web.dto.MealPreferenceDto;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 @RestController
