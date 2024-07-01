@@ -1,6 +1,7 @@
 # Stage 1: Build the JAR file
 FROM maven:3.9.5-sapmachine-21 as build
 ENV GEMINI_KEY=$GEMINI_KEY
+ENV JWT_SECRET=$JWT_SECRET
 # Set the working directory in the container
 WORKDIR /app
 
