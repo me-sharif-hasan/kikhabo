@@ -3,7 +3,7 @@ package com.iishanto.kikhabo.web.controller.v1;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.iishanto.kikhabo.domain.entities.text.GroceryPlanningPromptResponse;
 import com.iishanto.kikhabo.domain.usercase.meal.GenerateMealSuggestionUseCase;
-import com.iishanto.kikhabo.web.dto.MealPreferenceDto;
+import com.iishanto.kikhabo.web.dto.meal.MealPreferenceDto;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

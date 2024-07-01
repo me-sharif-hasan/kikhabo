@@ -1,5 +1,7 @@
 package com.iishanto.kikhabo.web.aop;
 
+import com.iishanto.kikhabo.common.exception.global.GlobalServerException;
+import com.iishanto.kikhabo.common.exception.user.UserLoginFailureException;
 import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureException;
 import com.iishanto.kikhabo.web.response.ErrorCodes;
 import com.iishanto.kikhabo.web.response.ErrorResponse;
@@ -33,4 +35,19 @@ public class UserControllerAdvice {
         logger.debug("USER REGISTRATION EXCEPTION {}",e.getLocalizedMessage());
         return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(UserLoginFailureException.class)
+    public ResponseEntity<ErrorResponse> handleUserLoginFailureException(UserLoginFailureException e){
+        ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.INVALID_CREDENTIALS);
+        logger.debug("USER REGISTRATION EXCEPTION {}",e.getLocalizedMessage());
+        return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(GlobalServerException.class)
+    public ResponseEntity<ErrorResponse> handleUnderminedException(GlobalServerException e){
+        ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.SERVER_ERROR);
+        logger.debug("USER REGISTRATION EXCEPTION {}",e.getLocalizedMessage());
+        return new ResponseEntity<>(err,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

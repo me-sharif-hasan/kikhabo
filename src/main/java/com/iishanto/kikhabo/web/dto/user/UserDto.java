@@ -1,4 +1,4 @@
-package com.iishanto.kikhabo.web.dto;
+package com.iishanto.kikhabo.web.dto.user;
 
 import com.iishanto.kikhabo.domain.entities.people.User;
 import jakarta.validation.constraints.Email;

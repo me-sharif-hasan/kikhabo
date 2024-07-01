@@ -1,5 +1,6 @@
 package com.iishanto.kikhabo.domain.entities.people;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,4 +22,8 @@ public class User {
     private String dateOfBirth;
     private Float weightInKg;
     private Float heightInFt;
+    @JsonIgnore
+    public String getPassword() {
+        return password;
+    }
 }
