@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iishanto.kikhabo.domain.datasource.ChatBotDataSource;
 import com.iishanto.kikhabo.domain.entities.text.Prompt;
-import com.iishanto.kikhabo.infrastructure.external.ai.ChatBotApi;
-import com.iishanto.kikhabo.infrastructure.prompt.PromptProvider;
+import com.iishanto.kikhabo.infrastructure.services.chatbot.ChatBotApiService;
+import com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.PromptProvider;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
@@ -14,13 +14,13 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 public class ChatBotDataSourceImpl implements ChatBotDataSource {
-    ChatBotApi chatBotApi;
+    ChatBotApiService chatBotApiService;
     ObjectMapper objectMapper;
     PromptProvider promptProvider;
     Logger logger;
     @Override
     public String prompt(Prompt prompt) throws JsonProcessingException {
-        String bardResponse = chatBotApi.request(promptProvider.getPrompt(prompt));
+        String bardResponse = chatBotApiService.request(promptProvider.getPrompt(prompt));
         logger.debug("Bard response: {}",bardResponse);
         JsonNode bardJson = objectMapper.readTree(bardResponse);
         JsonNode myOutput = bardJson.get("candidates").get(0).get("content").get("parts").get(0).get("text");

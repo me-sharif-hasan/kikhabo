@@ -1,22 +1,30 @@
-package com.iishanto.kikhabo.web.dto;
+package com.iishanto.kikhabo.infrastructure.model;
 
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.validation.Valid;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class UserDto {
-    private String uuid;
+@Table(name = "user",indexes = {
+        @Index(name = "unk_email",columnList = "email")
+})
+public class JpaUser {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID uuid;
     @NotEmpty
     @Email
+    @Column(unique = true)
     private String email;
     @NotEmpty
     @Length(min = 8)
@@ -26,11 +34,14 @@ public class UserDto {
     @NotEmpty
     private String lastName;
     @NotEmpty
+    private String gender;
+    @NotEmpty
     private String country;
 
-    private Float dateOfBirth;
+    private String dateOfBirth;
     private Float weightInKg;
     private Float heightInFt;
 
-
+    @OneToMany(cascade = CascadeType.REMOVE,mappedBy = "user")
+    private List<MealHistory> mealHistories;
 }
