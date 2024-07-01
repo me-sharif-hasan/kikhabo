@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,6 +42,13 @@ public class UserControllerAdvice {
     public ResponseEntity<ErrorResponse> handleUserLoginFailureException(UserLoginFailureException e){
         ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.INVALID_CREDENTIALS);
         logger.debug("USER REGISTRATION EXCEPTION {}",e.getLocalizedMessage());
+        return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> httpMessageNotReadable(HttpMessageNotReadableException e){
+        ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.BAD_JSON);
+        logger.debug("HTTP MESSAGE EXCEPTION {}",e.getLocalizedMessage());
         return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
     }
 
