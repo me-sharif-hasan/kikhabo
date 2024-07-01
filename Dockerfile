@@ -2,6 +2,13 @@
 FROM maven:3.9.5-sapmachine-21 as build
 ENV GEMINI_KEY=$GEMINI_KEY
 ENV JWT_SECRET=$JWT_SECRET
+ENV AIVEN_CLOUD_KEY=$AIVEN_CLOUD_KEY
+
+# Print environment variables to check if they are set correctly
+RUN echo "GEMINI_KEY: $GEMINI_KEY"
+RUN echo "JWT_SECRET: $JWT_SECRET"
+RUN echo "AIVEN_CLOUD_KEY: $AIVEN_CLOUD_KEY"
+
 # Set the working directory in the container
 WORKDIR /app
 
