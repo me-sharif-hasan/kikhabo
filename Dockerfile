@@ -1,13 +1,10 @@
 # Stage 1: Build the JAR file
 FROM maven:3.9.5-sapmachine-21 as build
+RUN --mount=type=secret,id=_env,dst=/etc/secrets/.env cat /etc/secrets/.env
+
 ENV GEMINI_KEY=$GEMINI_KEY
 ENV JWT_SECRET=$JWT_SECRET
 ENV AIVEN_CLOUD_KEY=$AIVEN_CLOUD_KEY
-
-# Print environment variables to check if they are set correctly
-RUN echo "GEMINI_KEY: $GEMINI_KEY"
-RUN echo "JWT_SECRET: $JWT_SECRET"
-RUN echo "AIVEN_CLOUD_KEY: $AIVEN_CLOUD_KEY"
 
 # Set the working directory in the container
 WORKDIR /app
@@ -16,7 +13,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Build the project and package it as a JAR
+# Build the project and run tests
 RUN mvn clean package
 
 # Stage 2: Run the JAR file
@@ -27,6 +24,9 @@ WORKDIR /app
 
 # Copy the JAR file from the build stage
 COPY --from=build /app/target/kikhabo.jar /app/kikhabo.jar
+
+# Expose port 8080
 EXPOSE 8080
+
 # Specify the command to run the JAR file
 CMD ["java", "-jar", "kikhabo.jar"]
