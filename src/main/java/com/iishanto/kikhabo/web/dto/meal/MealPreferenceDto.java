@@ -1,4 +1,4 @@
-package com.iishanto.kikhabo.web.dto;
+package com.iishanto.kikhabo.web.dto.meal;
 
 import com.iishanto.kikhabo.domain.entities.text.MealPreferenceData;
 import jakarta.validation.constraints.Max;

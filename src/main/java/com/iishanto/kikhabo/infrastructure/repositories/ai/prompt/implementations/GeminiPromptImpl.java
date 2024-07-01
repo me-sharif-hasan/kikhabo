@@ -1,18 +1,20 @@
-package com.iishanto.kikhabo.infrastructure.prompt.implementations;
+package com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iishanto.kikhabo.domain.entities.text.Prompt;
-import com.iishanto.kikhabo.infrastructure.prompt.PromptProvider;
+import com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.PromptProvider;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 public class GeminiPromptImpl implements PromptProvider {
     ObjectMapper objectMapper;
+    Logger logger;
 
     @Override
     public String getPrompt(Prompt prompt) {
-        return """
+        String promptString = """
                 {
                     "contents": [{
                         "parts":[
@@ -20,9 +22,14 @@ public class GeminiPromptImpl implements PromptProvider {
                                 "text": "%s"
                             }
                         ]
-                    }]
+                    }],
+                    "generationConfig": {
+                        "temperature": 2.0
+                     }
                 }
                 """.formatted(getUserPrompt(prompt));
+        logger.info(promptString);
+        return promptString;
     }
     private String getUserPrompt(Prompt prompt) {
         return
@@ -69,7 +76,7 @@ public class GeminiPromptImpl implements PromptProvider {
                                                 ]
                                             }
                                         }
-                The json should be a valid json and strings and keys should be quoted.
+                The json should be a valid json and strings and keys should be quoted. Also, randomize meals in each request. Consider the generator seed in this case. Also keep the note empty if not that necessary. 
                 """.formatted(
                         System.currentTimeMillis(),
                         prompt.getMealPreferenceData().getTotalMealCount(),
@@ -81,7 +88,7 @@ public class GeminiPromptImpl implements PromptProvider {
                         3.2 /*Sweetness rating*/,
                         7.0 /*Salt rating of the meals*/,
                         4.0 /*Budget rating*/,
-                        "Summer" /*Season*/,
+                        "Winter" /*Season*/,
                         "Bangladesh" /*Country*/
                 );
     }

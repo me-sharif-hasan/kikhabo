@@ -27,7 +27,7 @@ public class GroceryPlanningPromptResponse extends SchemaEntity {
         @AllArgsConstructor
         @NoArgsConstructor
         @Data
-        final public static class Meals extends SchemaEntity{
+        public static class Meals extends SchemaEntity{
             String mealName;
             Float totalEnergy;
             String note;
