@@ -1,4 +1,4 @@
-package com.iishanto.kikhabo.infrastructure.persistence.entities;
+package com.iishanto.kikhabo.infrastructure.model;
 
 import com.iishanto.kikhabo.domain.entities.text.GroceryPlanningPromptResponse;
 import jakarta.persistence.Entity;

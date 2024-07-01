@@ -1,8 +1,8 @@
-package com.iishanto.kikhabo.infrastructure.prompt.implementations;
+package com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iishanto.kikhabo.domain.entities.text.Prompt;
-import com.iishanto.kikhabo.infrastructure.prompt.PromptProvider;
+import com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.PromptProvider;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;

@@ -1,7 +1,7 @@
-package com.iishanto.kikhabo.infrastructure.security;
+package com.iishanto.kikhabo.infrastructure.services.security;
 
-import com.iishanto.kikhabo.infrastructure.persistence.entities.JpaUser;
-import com.iishanto.kikhabo.infrastructure.persistence.jpa.user.UserRepository;
+import com.iishanto.kikhabo.infrastructure.model.JpaUser;
+import com.iishanto.kikhabo.infrastructure.repositories.database.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;

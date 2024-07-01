@@ -1,7 +1,6 @@
-package com.iishanto.kikhabo.infrastructure.external.ai.implementations;
+package com.iishanto.kikhabo.infrastructure.services.chatbot.implementations;
 
-import com.iishanto.kikhabo.infrastructure.external.ai.ChatBotApi;
-import lombok.AllArgsConstructor;
+import com.iishanto.kikhabo.infrastructure.services.chatbot.ChatBotApiService;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -10,11 +9,11 @@ import org.springframework.web.client.RestClient;
 import java.net.URI;
 
 @Component
-public class GeminiChatBotImpl implements ChatBotApi {
+public class GeminiChatBotApiServiceImpl implements ChatBotApiService {
     final private RestClient apiClient;
     final private String endpoint;
     Logger logger;
-    public GeminiChatBotImpl(@Value("${google.gemini.apikey}") String apiKey,@Value("${google.gemini.endpoint}") String endpoint, RestClient restClient,Logger logger){
+    public GeminiChatBotApiServiceImpl(@Value("${google.gemini.apikey}") String apiKey, @Value("${google.gemini.endpoint}") String endpoint, RestClient restClient, Logger logger){
         this.apiClient=restClient;
         this.endpoint=endpoint+"?key="+apiKey;
         this.logger=logger;

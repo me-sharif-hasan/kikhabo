@@ -1,6 +1,7 @@
 package com.iishanto.kikhabo.web.aop;
 
 import com.iishanto.kikhabo.common.exception.global.GlobalServerException;
+import com.iishanto.kikhabo.common.exception.security.UnauthorizedAccessException;
 import com.iishanto.kikhabo.common.exception.user.UserLoginFailureException;
 import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureException;
 import com.iishanto.kikhabo.web.response.ErrorCodes;
@@ -9,8 +10,8 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -48,6 +49,13 @@ public class UserControllerAdvice {
         ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.SERVER_ERROR);
         logger.debug("USER REGISTRATION EXCEPTION {}",e.getLocalizedMessage());
         return new ResponseEntity<>(err,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(AuthenticationException e){
+        logger.debug("UNAUTHORIZED ACCESS EXCEPTION {}",e.getLocalizedMessage());
+        ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.UNAUTHORIZED_ACCESS);
+        return new ResponseEntity<>(err,HttpStatus.UNAUTHORIZED);
     }
 
 }

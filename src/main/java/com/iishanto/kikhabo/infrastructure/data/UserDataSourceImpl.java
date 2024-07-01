@@ -7,9 +7,9 @@ import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureExcepti
 import com.iishanto.kikhabo.domain.datasource.UserDataSource;
 import com.iishanto.kikhabo.domain.entities.people.Credentials;
 import com.iishanto.kikhabo.domain.entities.people.User;
-import com.iishanto.kikhabo.infrastructure.persistence.entities.JpaUser;
-import com.iishanto.kikhabo.infrastructure.persistence.jpa.user.UserRepository;
-import com.iishanto.kikhabo.infrastructure.security.JwtService;
+import com.iishanto.kikhabo.infrastructure.model.JpaUser;
+import com.iishanto.kikhabo.infrastructure.repositories.database.UserRepository;
+import com.iishanto.kikhabo.infrastructure.services.security.JwtService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.security.authentication.AuthenticationManager;
