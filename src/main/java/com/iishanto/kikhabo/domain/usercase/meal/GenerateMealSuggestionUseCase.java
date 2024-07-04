@@ -22,13 +22,6 @@ public class GenerateMealSuggestionUseCase implements UseCase<GroceryPlanningPro
         Prompt prompt=new Prompt();
         prompt.setMealPreferenceData(mealPreferenceData);
 
-        String getData=getRT();
-
         return objectMapper.readValue(chatBotDataSource.prompt(prompt),GroceryPlanningPromptResponse.class);
-    }
-
-
-    private <RT> RT getRT(){
-        return (RT) "new Object()";
     }
 }

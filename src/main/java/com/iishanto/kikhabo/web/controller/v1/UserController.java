@@ -9,6 +9,9 @@ import com.iishanto.kikhabo.domain.usercase.user.UserRegistrationUseCase;
 import com.iishanto.kikhabo.web.dto.user.CredentialsDto;
 import com.iishanto.kikhabo.web.dto.user.LoginResponseDto;
 import com.iishanto.kikhabo.web.dto.user.UserDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -25,12 +28,14 @@ public class UserController {
     UserLoginUseCase userLoginUseCase;
     Logger logger;
 
+    @SecurityRequirements
     @PostMapping("register")
     public ResponseEntity<User> registration(@Valid @RequestBody UserDto user) throws UserRegistrationFailureException {
         logger.info(user.toString());
         return new ResponseEntity<>(userRegistrationUseCase.execute(user.toDomain()), HttpStatus.CREATED);
     }
 
+    @SecurityRequirements
     @PostMapping("login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody CredentialsDto credentialsDto) throws Exception {
         Credentials response=userLoginUseCase.execute(credentialsDto.toDomain());
