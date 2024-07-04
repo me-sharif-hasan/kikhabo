@@ -1,5 +1,6 @@
 package com.iishanto.kikhabo.infrastructure.services.security;
 
+import ch.qos.logback.core.util.StringUtil;
 import com.iishanto.kikhabo.common.exception.security.UnauthorizedAccessException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,7 +28,8 @@ public class JwtSecurityFilterChain extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         logger.info("Filtering jwt request ip: {} -> path: {}",request.getRemoteAddr(),request.getPathInfo());
         String jwtToken=request.getHeader("Authorization");
-        if(jwtToken!=null){
+        if(jwtToken!=null&& jwtToken.length()>7&&jwtToken.charAt(6)==' '){
+            jwtToken=jwtToken.split(" ")[1];
             String email=jwtService.getUserEmailFromToken(jwtToken);
             UserDetails userDetails=userDetailsService.loadUserByUsername(email);
             UsernamePasswordAuthenticationToken token=new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());

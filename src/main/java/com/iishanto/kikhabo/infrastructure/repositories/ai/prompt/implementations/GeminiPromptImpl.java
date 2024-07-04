@@ -28,7 +28,6 @@ public class GeminiPromptImpl implements PromptProvider {
                      }
                 }
                 """.formatted(getUserPrompt(prompt));
-        logger.info(promptString);
         return promptString;
     }
     private String getUserPrompt(Prompt prompt) {

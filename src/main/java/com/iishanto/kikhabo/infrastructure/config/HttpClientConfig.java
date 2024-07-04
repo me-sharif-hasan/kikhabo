@@ -1,4 +1,4 @@
-package com.iishanto.kikhabo.common.config;
+package com.iishanto.kikhabo.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
