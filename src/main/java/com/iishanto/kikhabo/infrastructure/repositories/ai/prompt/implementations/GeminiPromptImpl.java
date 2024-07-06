@@ -2,18 +2,29 @@ package com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.implementatio
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iishanto.kikhabo.domain.entities.text.Prompt;
+import com.iishanto.kikhabo.infrastructure.model.UserEntity;
 import com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.PromptProvider;
+import com.iishanto.kikhabo.infrastructure.repositories.database.UserRepository;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 public class GeminiPromptImpl implements PromptProvider {
     ObjectMapper objectMapper;
     Logger logger;
+    UserRepository userRepository;
 
     @Override
     public String getPrompt(Prompt prompt) {
+
+        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails=(UserDetails) authentication.getPrincipal();
+        logger.info("EMAIL II: {}",userDetails.getUsername());
+        UserEntity userEntity =userRepository.findByEmail(userDetails.getUsername());
         String promptString = """
                 {
                     "contents": [{
@@ -40,9 +51,9 @@ public class GeminiPromptImpl implements PromptProvider {
                 Age list of the person(s): %s,
                 BMI list of the person(s): %s,
                 Average working hours list of each person: %s,
-                Spicy rating of the meals: %f,
-                Sweetness rating of the meals: %f,
-                Salt rating of the meals: %f,
+                Spicy rating of the meal: %f,
+                Sweetness rating of the meal: %f,
+                Salt rating of the meal: %f,
                 Budget rating out of 10: %f,
                 Current season: %s,
                 Country of origin: %s
@@ -52,30 +63,27 @@ public class GeminiPromptImpl implements PromptProvider {
                                             status:<response status, success|error>,
                                             message:<status message>,
                                             data:{
-                                            totalMeals:<the number of meals to generate>,
+                                            totalMeals:<the number of meal to generate>,
                                                 meals:[
                                                     {
                                                         mealName:<name of the meal>,
                                                         totalEnergy:<total energy in kilocalorie| in float>,
                                                         note:<if any disclaimer needed to be maintained>,
                                                         ingredients:<comma seperated list of ingredients>,
-                                                        groceries:{
-                                                            total:<total groceries to buy>,
-                                                            itemList:[
-                                                                {
-                                                                    name:<name of the grocery item>,
-                                                                    priceRatingOutOf10:<price rating>,
-                                                                    amountInGm:<how much to buy>
-                                                                },
-                                                                <list of remaining groceries>
-                                                            ]
-                                                        },
-                                                        <list of remaining meals>
-                                                    }
+                                                        groceries:[
+                                                             {
+                                                                 name:<name of the grocery item>,
+                                                                 priceRatingOutOf10:<price rating>,
+                                                                 amountInGm:<how much to buy>
+                                                             },
+                                                             <list of remaining groceries>
+                                                        ]
+                                                    },
+                                                    <list of remaining meal>
                                                 ]
                                             }
                                         }
-                The json should be a valid json and strings and keys should be quoted. Also, randomize meals in each request. Consider the generator seed in this case. Also keep the note empty if not that necessary. 
+                The json should be a valid json and strings and keys should be quoted. Also, randomize meal in each request. Consider the generator seed in this case. Also keep the note empty if not that necessary. 
                 """.formatted(
                         System.currentTimeMillis(),
                         prompt.getMealPreferenceData().getTotalMealCount(),
@@ -83,10 +91,10 @@ public class GeminiPromptImpl implements PromptProvider {
                         "20,22,23,21" /*Age list of the persons*/,
                         "18,20,30,32" /*BMI list of the persons*/,
                         "10,5,10,7" /*Working hours list of the persons*/,
-                        5.4 /*Spicy rating*/,
+                        prompt.getMealPreferenceData().getSpicyRating() /*Spicy rating*/,
                         3.2 /*Sweetness rating*/,
-                        7.0 /*Salt rating of the meals*/,
-                        4.0 /*Budget rating*/,
+                        prompt.getMealPreferenceData().getSaltRating() /*Salt rating of the meal*/,
+                        prompt.getMealPreferenceData().getPriceRating() /*Budget rating*/,
                         "Winter" /*Season*/,
                         "Bangladesh" /*Country*/
                 );

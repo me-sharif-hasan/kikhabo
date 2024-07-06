@@ -1,5 +1,6 @@
 package com.iishanto.kikhabo.infrastructure.model;
 
+import com.iishanto.kikhabo.domain.entities.people.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -18,10 +19,10 @@ import java.util.UUID;
 @Table(name = "user",indexes = {
         @Index(name = "unk_email",columnList = "email")
 })
-public class JpaUser {
+public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID uuid;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @NotEmpty
     @Email
     @Column(unique = true)
@@ -42,6 +43,21 @@ public class JpaUser {
     private Float weightInKg;
     private Float heightInFt;
 
-    @OneToMany(cascade = CascadeType.REMOVE,mappedBy = "user")
-    private List<MealHistory> mealHistories;
+    @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
+    private List<MealHistoryEntity> mealHistories;
+
+    public User toDomain() {
+        User user=User.builder()
+                .id(id)
+                .country(country)
+                .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .weightInKg(weightInKg)
+                .gender(gender)
+                .dateOfBirth(dateOfBirth)
+                .heightInFt(heightInFt)
+                .build();
+        return user;
+    }
 }
