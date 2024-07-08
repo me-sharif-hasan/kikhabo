@@ -71,8 +71,18 @@ public class UserDataSourceImpl implements UserDataSource {
 
     @Override
     public User getAuthenticatedUser() {
-        UserDetails userDetails= (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserEntity user=userRepository.findByEmail(userDetails.getUsername());
+        UserEntity user=userRepository.findByEmail(getAuthUserEmail());
         return user.toDomain();
+    }
+
+    @Override
+    public String getAuthUserEmail() {
+        UserDetails userDetails= (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userDetails.getUsername();
+    }
+
+    @Override
+    public User getUser(String email) {
+        return null;
     }
 }

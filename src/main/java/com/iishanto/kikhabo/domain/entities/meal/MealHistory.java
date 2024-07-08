@@ -1,19 +1,24 @@
 package com.iishanto.kikhabo.domain.entities.meal;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.iishanto.kikhabo.domain.entities.common.SchemaEntity;
+import com.iishanto.kikhabo.domain.entities.people.User;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-@EqualsAndHashCode(callSuper = true)
+
+@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MealInformation extends SchemaEntity {
-    private int totalMeals;
-    private List<Meal> meals;
+public class MealHistory {
+    private Long id;
+    private String mealStatus;
+    private Meal meal;
+    private List<Grocery> groceries;
+    private User user;
+    private Long timestamp;
 }

@@ -34,4 +34,12 @@ public class MealEntity {
                 .note(meal.getNote())
                 .ingredients(meal.getIngredients()).build();
     }
+
+    public Meal toDomain() {
+        return Meal.builder()
+                .mealName(getMealName())
+                .totalEnergy(getTotalEnergy())
+                .note(getNote())
+                .ingredients(getIngredients()).build();
+    }
 }

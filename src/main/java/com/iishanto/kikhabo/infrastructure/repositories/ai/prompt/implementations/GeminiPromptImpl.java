@@ -1,11 +1,13 @@
 package com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iishanto.kikhabo.domain.entities.meal.Meal;
 import com.iishanto.kikhabo.domain.entities.text.Prompt;
 import com.iishanto.kikhabo.infrastructure.model.UserEntity;
 import com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.PromptProvider;
 import com.iishanto.kikhabo.infrastructure.repositories.database.UserRepository;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +33,12 @@ public class GeminiPromptImpl implements PromptProvider {
                         "parts":[
                             {
                                 "text": "%s"
+                            },
+                            {
+                                "text": "I have already eaten these items in my meal. So I want you to consider these and prepare the meal
+                                and grocery suggestion according to the following prompt so that the suggestion do not become boring. Try to serve
+                                different kinds of food, not just flavors of these, %s. Also consider giving healthy food according to the BMI I'll give in
+                                the following prompt"
                             }
                         ]
                     }],
@@ -38,7 +46,11 @@ public class GeminiPromptImpl implements PromptProvider {
                         "temperature": 2.0
                      }
                 }
-                """.formatted(getUserPrompt(prompt));
+                """.formatted(
+                        getUserPrompt(prompt),
+                        StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", ")
+        );
+        logger.warn(promptString);
         return promptString;
     }
     private String getUserPrompt(Prompt prompt) {
@@ -83,7 +95,9 @@ public class GeminiPromptImpl implements PromptProvider {
                                                 ]
                                             }
                                         }
-                The json should be a valid json and strings and keys should be quoted. Also, randomize meal in each request. Consider the generator seed in this case. Also keep the note empty if not that necessary. 
+                The json should be a valid json and strings and keys should be quoted. Also, randomize meal in each request. Consider the generator seed in this case. Also keep the note empty if not that necessary.
+                One last request, please don't make the suggestion boring and only suggest foods that bangladeshi peoples eat day by day and affordable according to price rating. For your use, here are the last %d meal list:
+                %s. Also you don't have to say too much, just mention the names and give consistent sentences.
                 """.formatted(
                         System.currentTimeMillis(),
                         prompt.getMealPreferenceData().getTotalMealCount(),
@@ -96,7 +110,9 @@ public class GeminiPromptImpl implements PromptProvider {
                         prompt.getMealPreferenceData().getSaltRating() /*Salt rating of the meal*/,
                         prompt.getMealPreferenceData().getPriceRating() /*Budget rating*/,
                         "Winter" /*Season*/,
-                        "Bangladesh" /*Country*/
+                        "Bangladesh" /*Country*/,
+                        prompt.getLastMealRecord().size(),
+                        StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", ")
                 );
     }
 }

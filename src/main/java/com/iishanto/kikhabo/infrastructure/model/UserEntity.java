@@ -1,5 +1,8 @@
 package com.iishanto.kikhabo.infrastructure.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iishanto.kikhabo.domain.entities.people.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -8,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.boot.SpringApplication;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,20 +48,24 @@ public class UserEntity {
     private Float heightInFt;
 
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonManagedReference
     private List<MealHistoryEntity> mealHistories;
 
     public User toDomain() {
-        User user=User.builder()
-                .id(id)
-                .country(country)
-                .email(email)
-                .firstName(firstName)
-                .lastName(lastName)
-                .weightInKg(weightInKg)
-                .gender(gender)
-                .dateOfBirth(dateOfBirth)
-                .heightInFt(heightInFt)
-                .build();
+        ObjectMapper objectMapper=new ObjectMapper();
+        User user=objectMapper.convertValue(this,User.class);
+//        return User.builder()
+//                .id(id)
+//                .country(country)
+//                .email(email)
+//                .firstName(firstName)
+//                .lastName(lastName)
+//                .weightInKg(weightInKg)
+//                .gender(gender)
+//                .dateOfBirth(dateOfBirth)
+//                .heightInFt(heightInFt)
+//                .build();
         return user;
     }
 }

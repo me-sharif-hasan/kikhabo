@@ -13,4 +13,6 @@ public interface UserDataSource {
     User register(User user) throws UserRegistrationFailureException;
     Credentials login(Credentials credentials) throws UserLoginFailureException, GlobalServerException;
     User getAuthenticatedUser();
+    String getAuthUserEmail();
+    User getUser(String email);
 }
