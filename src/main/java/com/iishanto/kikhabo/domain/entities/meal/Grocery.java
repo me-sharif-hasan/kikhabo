@@ -1,7 +1,7 @@
-package com.iishanto.kikhabo.domain.entities.text;
+package com.iishanto.kikhabo.domain.entities.meal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.iishanto.kikhabo.domain.entities.common.SchemaEntity;
-import com.iishanto.kikhabo.domain.entities.meal.Meal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,8 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Prompt extends SchemaEntity {
-    private String message;
-    private MealPreferenceData mealPreferenceData;
-    private List<Meal> lastMealRecord;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Grocery extends SchemaEntity{
+    String name;
+    String priceRatingOutOf10;
+    String amountInGm;
 }
