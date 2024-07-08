@@ -18,6 +18,6 @@ Dillinger uses a number of open source projects to work properly:
 
 - [ReactJs] - For frontend development.
 - [Java Spring Boot] - Backend server.
-- [Machine Learning] - For preparing meals and giving suggestions.
+- [Machine Learning] - For preparing meal and giving suggestions.
 - [Tailwind] - As frontend css solution.
 - [Vite] - As resource bundler.

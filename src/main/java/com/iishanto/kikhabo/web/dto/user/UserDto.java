@@ -16,7 +16,7 @@ import java.util.UUID;
 @Data
 @ToString
 public class UserDto {
-    private UUID uuid;
+    private Long id;
     @NotEmpty
     @Email
     private String email;
@@ -40,7 +40,7 @@ public class UserDto {
 
     public User toDomain() {
         return User.builder()
-                .uuid(uuid)
+                .id(id)
                 .firstName(firstName)
                 .lastName(lastName)
                 .email(email)

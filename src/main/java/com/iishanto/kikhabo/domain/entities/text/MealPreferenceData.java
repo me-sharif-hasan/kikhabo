@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = false)
 @Data
 @AllArgsConstructor
@@ -16,4 +18,5 @@ public class MealPreferenceData extends SchemaEntity {
     Float dayCount;
     Float priceRating;
     Integer totalMealCount;
+    List<Float> agesOfTheMembers;
 }
