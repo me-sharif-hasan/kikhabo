@@ -66,4 +66,11 @@ public class UserControllerAdvice {
         return new ResponseEntity<>(err,HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleAllException(Exception e){
+        logger.debug("UNKNOWN EXCEPTION {}",e.getLocalizedMessage());
+        ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.UNKNOWN_ERROR);
+        return new ResponseEntity<>(err,HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
 }
