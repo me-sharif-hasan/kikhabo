@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 @RestController
 @RequestMapping("api/v1/meal-planning")
-@Tag(name = "Meal Planning", description = "Use this API to create meal planning by providing your preferences.")
+@Tag(name = "MealEntity Planning", description = "Use this API to create meal planning by providing your preferences.")
 public class MealPlanController {
     GenerateMealSuggestionUseCase generateMealSuggestionUseCase;
     @PostMapping

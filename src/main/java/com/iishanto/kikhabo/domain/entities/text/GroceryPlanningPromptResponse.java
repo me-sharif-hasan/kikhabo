@@ -1,12 +1,11 @@
 package com.iishanto.kikhabo.domain.entities.text;
 
 import com.iishanto.kikhabo.domain.entities.common.SchemaEntity;
+import com.iishanto.kikhabo.domain.entities.meal.MealInformation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
@@ -15,41 +14,5 @@ import java.util.List;
 public class GroceryPlanningPromptResponse extends SchemaEntity {
     private String status;
     private String message;
-    private GroceryData data;
-    @EqualsAndHashCode(callSuper = true)
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Data
-    public static class GroceryData extends SchemaEntity {
-        private int totalMeals;
-        private List<Meals> meals;
-        @EqualsAndHashCode(callSuper = true)
-        @AllArgsConstructor
-        @NoArgsConstructor
-        @Data
-        public static class Meals extends SchemaEntity{
-            String mealName;
-            Float totalEnergy;
-            String note;
-            String ingredients;
-            Groceries groceries;
-            @EqualsAndHashCode(callSuper = true)
-            @AllArgsConstructor
-            @NoArgsConstructor
-            @Data
-            public static class Groceries extends SchemaEntity{
-                Integer total;
-                List <Grocery> itemList;
-                @EqualsAndHashCode(callSuper = true)
-                @AllArgsConstructor
-                @NoArgsConstructor
-                @Data
-                public static class Grocery extends SchemaEntity{
-                    String name;
-                    String priceRatingOutOf10;
-                    String amountInGm;
-                }
-            }
-        }
-    }
+    private MealInformation data;
 }

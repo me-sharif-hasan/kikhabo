@@ -26,7 +26,7 @@ public class JwtSecurityFilterChain extends OncePerRequestFilter {
     Logger logger;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        logger.info("Filtering jwt request ip: {} -> path: {}",request.getRemoteAddr(),request.getPathInfo());
+        logger.info("Filtering jwt request ip: {} -> path: {} {}",request.getRemoteAddr(),request.getMethod(),request.getRequestURL());
         String jwtToken=request.getHeader("Authorization");
         if(jwtToken!=null&& jwtToken.length()>7&&jwtToken.charAt(6)==' '){
             jwtToken=jwtToken.split(" ")[1];
