@@ -1,15 +1,11 @@
 import React from 'react';
-import backgroundImage from './assets/bg.jpeg';
+import '../index.css' ;
+import Background1 from './features/Background1';
 
 function App() {
   return (
     <>
-       <div
-      className="w-full h-screen bg-cover bg-center"
-      style={{ backgroundImage: `url(${backgroundImage})` }}
-    >
-     <div className="font-bold ">KI KHABO</div> 
-    </div>
+     <Background1/> 
      
     </>
   )
