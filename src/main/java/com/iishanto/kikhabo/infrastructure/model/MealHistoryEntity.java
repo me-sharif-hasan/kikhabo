@@ -27,5 +27,7 @@ public class MealHistoryEntity {
     @JsonBackReference
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserEntity user;
+    private Float rating;
+    private String userNote;
     private Long timestamp;
 }

@@ -21,4 +21,6 @@ public class MealHistory {
     private List<Grocery> groceries;
     private User user;
     private Long timestamp;
+    private Float rating;
+    private String userNote;
 }
