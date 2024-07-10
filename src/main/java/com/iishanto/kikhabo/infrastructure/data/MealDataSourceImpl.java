@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iishanto.kikhabo.domain.datasource.MealDataSource;
 import com.iishanto.kikhabo.domain.datasource.UserDataSource;
 import com.iishanto.kikhabo.domain.entities.meal.Meal;
+import com.iishanto.kikhabo.domain.entities.meal.MealHistory;
 import com.iishanto.kikhabo.domain.entities.people.User;
 import com.iishanto.kikhabo.infrastructure.model.GroceryEntity;
 import com.iishanto.kikhabo.infrastructure.model.MealEntity;
@@ -45,7 +46,8 @@ public class MealDataSourceImpl implements MealDataSource {
             mealHistoryEntity.setTimestamp(System.currentTimeMillis());
             mealHistoryEntity.setGroceries(meal.getGroceries().stream().map(GroceryEntity::fromDomain).toList());
             mealHistoryEntity.setUser(user);
-            mealRepository.save(mealEntity);
+            mealEntity= mealRepository.save(mealEntity);
+            meal.setId(mealEntity.getId());
             mealHistoryEntities.add(mealHistoryEntity);
         });
         user.setMealHistories(mealHistoryEntities);
@@ -57,6 +59,24 @@ public class MealDataSourceImpl implements MealDataSource {
         User user =userDataSource.getAuthenticatedUser();
         UserEntity userEntity=objectMapper.convertValue(user,UserEntity.class);
         return getMealsForUid(userEntity,limit);
+    }
+
+    @Override
+    public boolean update(MealHistory mealHistory) {
+        try{
+            Long id=mealHistory.getId();
+            MealHistoryEntity mealHistoryEntity=mealHistoryRepository.findById(id).orElse(null);
+            if (mealHistoryEntity!=null){
+                mealHistoryEntity.setRating(mealHistory.getRating());
+                mealHistoryEntity.setUserNote(mealHistory.getUserNote());
+                mealHistoryEntity.setMealStatus(mealHistory.getMealStatus());
+                mealHistoryRepository.save(mealHistoryEntity);
+                return true;
+            }
+        }catch (Exception e){
+            return false;
+        }
+        return false;
     }
 
     private List<Meal> getMealsForUid(UserEntity user, int limit) {

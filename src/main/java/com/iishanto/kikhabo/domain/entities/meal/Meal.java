@@ -13,6 +13,7 @@ import java.util.List;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Meal extends SchemaEntity{
+    Long id;
     String mealName;
     Float totalEnergy;
     String note;
