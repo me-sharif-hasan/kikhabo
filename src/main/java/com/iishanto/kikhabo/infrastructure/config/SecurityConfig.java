@@ -25,9 +25,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @AllArgsConstructor
 @Configuration
@@ -38,8 +43,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity.
-                csrf(AbstractHttpConfigurer::disable)
+        return httpSecurity
+                .cors(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req->{
                     req.requestMatchers("/api/v1/user/login","/api/v1/user/register").permitAll();
                     req.requestMatchers("/swagger-ui.html").permitAll();
@@ -47,7 +53,6 @@ public class SecurityConfig {
                     req.requestMatchers("/v3/api-docs/**").permitAll();
                     req.anyRequest().authenticated();
                 })
-                .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(filterChain, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(
@@ -61,6 +66,8 @@ public class SecurityConfig {
                 )
                 .build();
     }
+
+
     @Bean
     public PasswordEncoder encoder() {
         return new BCryptPasswordEncoder();
