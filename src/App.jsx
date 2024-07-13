@@ -1,13 +1,23 @@
 import React from 'react';
 import '../index.css' ;
-import Background1 from './features/Background1';
+
+import { Routes, Route } from 'react-router-dom';
+import Dashboard from './features/dashboard/Dashboard.jsx';
+import LoginPage from './features/login/screens/LoginPage.jsx';
+
 
 function App() {
   return (
     <>
-     <Background1/> 
-     
+
+      <Routes>
+      <Route path="/" element={<LoginPage/>} />
+      <Route path="/dashboard" element={<Dashboard />} />
+     </Routes>
+
+
     </>
+
   )
 }
 

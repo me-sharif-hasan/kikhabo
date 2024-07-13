@@ -10,8 +10,11 @@ export default {
         bgColor: '#fbfef7',
       },
       backgroundImage:{
-        'bgImage': "url(/bg.jpeg)",
+        'bgImage': "url(/bg.png)",
+        'dashImage': "url(/bg-dashboard.jpeg)",
       },
+
+
     },
   },
   plugins: [],
