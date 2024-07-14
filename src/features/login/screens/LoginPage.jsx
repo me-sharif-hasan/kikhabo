@@ -9,25 +9,27 @@ import login_datasource from '../datasource/login_datasource';
 
 
 const LoginPage = () => {
+  let login= new login_datasource();
   
-  const [email, setEmail]=useState('');
-  const [password, setPassword]=useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    login_datasource.doLogin(email,password).then((response)=>{
+    let email=e.target[0].value;
+    let password=e.target[1].value;
+    login.doLogin(email,password).then((response)=>{
       
       console.log(response);
 
-      if (response.data.status=='success') {
+      if (response.status=='success') {
         // Redirect to the Dashboard page
         navigate('/dashboard');
       }
     }).catch((error)=>{
-      setError(error.data.message);
+      console.log(error);
+      setError(error.message);
     })
      
   };
