@@ -4,24 +4,17 @@ import PrimaryButton from '../widgets/PrimaryButton';
 import InputTextField from '../widgets/InputTextField';
 import RememberMe from './RememberMe';
 import { useNavigate } from 'react-router-dom';
-import {AiOutlineLock} from "react-icons/ai";
 import login_datasource from '../datasource/login_datasource';
 
 
 
 const LoginPage = () => {
+  
   const [email, setEmail]=useState('');
   const [password, setPassword]=useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-  };
-
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,7 +43,6 @@ const LoginPage = () => {
             <form onSubmit={handleSubmit}>  
 
             <InputTextField/>
-
             <RememberMe/>                          
             <PrimaryButton/>
             {error && <p className="error">{error}</p>}
