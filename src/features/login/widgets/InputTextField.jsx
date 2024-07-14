@@ -1,22 +1,8 @@
 import {AiOutlineLock} from "react-icons/ai";
-import React, { useState } from 'react';
+import React from 'react';
+
 
 const InputTextField = () => {
-  const [email, setEmail]=useState('');
-  const [password, setPassword]=useState('');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-  };
-
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
-    
-  
-  
 
   return (
     <div>
