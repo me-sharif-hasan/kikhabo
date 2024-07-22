@@ -19,6 +19,7 @@ const LoginPage = () => {
     e.preventDefault();
     let email=e.target[0].value;
     let password=e.target[1].value;
+    
     login.doLogin(email,password).then((response)=>{
       
       console.log(response);
