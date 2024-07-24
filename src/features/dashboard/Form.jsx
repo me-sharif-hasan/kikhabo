@@ -23,9 +23,10 @@ const Form = () => {
 
     meal.mealRequest(spicyRating,saltRating,dayCount,priceRating,totalMealCount,agesOfTheMembers).then((response)=>{
       console.log(response);
-      response.status='success';
+      
       if(response.status=='success'){
-        navigate('/meals')
+        //navigate('/meals');
+        console.log("Success");
       }
     }).catch((error)=>{
       console.log(error);

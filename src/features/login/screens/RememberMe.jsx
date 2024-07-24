@@ -12,7 +12,7 @@ const RememberMe = () => {
              </div>
 
              <div>
-              <div className="m-4" >New Here ? <span className='text-pink-800 hover:text-green-900'> <a href="/">Create an account .</a> </span> </div>
+              <div className="m-4" >New Here ? <span className='text-pink-800 hover:text-green-900'> <a href="/register">Create an account .</a> </span> </div>
              </div>      
     </div>
   )

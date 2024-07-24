@@ -1,4 +1,4 @@
-import baseURL from './config.js';
+import baseURL from '../../config.js';
 import axios from 'axios';
 
 class dashboard_datasource  {
