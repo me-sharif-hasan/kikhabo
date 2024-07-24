@@ -27,7 +27,7 @@ const Registration = () => {
 
 
 
-    register.doRegister(id,email,password,firstName,lastName,country,gender,dateOfBirth,weightInKg, heightInKg).then((response)=>{
+    register.doRegister(id,email,password,firstName,lastName,country,gender,dateOfBirth,weightInKg, heightInFt).then((response)=>{
       console.log(response);
       if(response.status=='success'){
         navigate('/dashboard');
