@@ -1,10 +1,12 @@
-import React from 'react';
+import React , { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import InputText from './widgets/InputText.jsx';
-import SuggestButton from './widgets/SuggestButton.jsx'
+import SuggestButton from './widgets/SuggestButton.jsx';
+import dashboard_datasource from './datasource/dashboard_datasource.js';
 
 const Form = () => {
+
+  let meal= new dashboard_datasource();
 
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -12,7 +14,23 @@ const Form = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    <p>Submitted</p>
+    let spicyRating=e.target[0].value;
+    let saltRating=e.target[1].value;
+    let dayCount=e.target[2].value;
+    let priceRating=e.target[3].value;
+    let totalMealCount=e.target[4].value;
+    let agesOfTheMembers=e.target[5].value;
+
+    meal.mealRequest(spicyRating,saltRating,dayCount,priceRating,totalMealCount,agesOfTheMembers).then((response)=>{
+      console.log(response);
+      response.status='success';
+      if(response.status=='success'){
+        navigate('/meals')
+      }
+    }).catch((error)=>{
+      console.log(error);
+      setError(error.message);
+    })
      
   };
 
@@ -29,7 +47,7 @@ const Form = () => {
     {error && <p className="error">{error}</p>}
     </form>
 
-</div>
+    </div>
 
     </div>
   )
