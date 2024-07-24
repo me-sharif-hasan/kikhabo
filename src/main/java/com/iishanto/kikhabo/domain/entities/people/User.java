@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,6 +24,7 @@ public class User {
     private String dateOfBirth;
     private Float weightInKg;
     private Float heightInFt;
+    private String religion;
     private List<MealHistory> mealHistories;
     @JsonIgnore
     public String getPassword() {

@@ -1,16 +1,16 @@
 package com.iishanto.kikhabo.web.controller.v1;
 
-import com.iishanto.kikhabo.common.exception.global.GlobalServerException;
 import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureException;
+import com.iishanto.kikhabo.domain.datasource.WeatherDataSource;
 import com.iishanto.kikhabo.domain.entities.people.Credentials;
 import com.iishanto.kikhabo.domain.entities.people.User;
 import com.iishanto.kikhabo.domain.usercase.user.UserLoginUseCase;
 import com.iishanto.kikhabo.domain.usercase.user.UserRegistrationUseCase;
+import com.iishanto.kikhabo.domain.usercase.user.UserUpdateUseCase;
 import com.iishanto.kikhabo.web.dto.user.CredentialsDto;
 import com.iishanto.kikhabo.web.dto.user.LoginResponseDto;
 import com.iishanto.kikhabo.web.dto.user.UserDto;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import com.iishanto.kikhabo.web.dto.user.UserUpdateDto;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     UserRegistrationUseCase userRegistrationUseCase;
     UserLoginUseCase userLoginUseCase;
+    UserUpdateUseCase userUpdateUseCase;
+    WeatherDataSource weatherDataSource;
     Logger logger;
 
     @SecurityRequirements
@@ -41,4 +43,11 @@ public class UserController {
         Credentials response=userLoginUseCase.execute(credentialsDto.toDomain());
         return new ResponseEntity<>(LoginResponseDto.fromCredential(response),HttpStatus.OK);
     }
+
+    @PutMapping("update")
+    public ResponseEntity<User> update(@Valid @RequestBody UserUpdateDto user) throws Exception {
+        User domainUser=user.toDomain();
+        return new ResponseEntity<>(userUpdateUseCase.execute(domainUser),HttpStatus.OK);
+    }
+
 }
