@@ -1,5 +1,6 @@
 import React from 'react';
-import Form from  './Form.jsx'
+import Form from  './Form.jsx';
+import {Link} from 'react-router-dom';
 
 const Navbar = () => {
   return (
@@ -19,25 +20,25 @@ const Navbar = () => {
         <div className='p-2.5 mt-3 flex items-center rounded-md px-4
         duration-300 cursor-pointer hover:bg-green-500 text-white' >
           <i className='bi bi-house-door-fill' ></i>
-          <span className='text=[15px] ml-4 text-white font-semibold' >Home</span>
+          <span className='text=[15px] ml-4 text-white font-semibold' > <Link to="/home">Home</Link></span>
         </div>
 
         <div className='p-2.5 mt-3 flex items-center rounded-md px-4
         duration-300 cursor-pointer hover:bg-green-500 text-white' >
           <i className='bi bi-house-door-fill' ></i>
-          <span className='text=[15px] ml-4 text-white font-semibold' >Total Calorie</span>
+          <span className='text=[15px] ml-4 text-white font-semibold' ><Link to="/meal_stat">Meal Statistics</Link></span>
         </div>
 
         <div className='p-2.5 mt-3 flex items-center rounded-md px-4
         duration-300 cursor-pointer hover:bg-green-500 text-white' >
           <i className='bi bi-house-door-fill' ></i>
-          <span className='text=[15px] ml-4 text-white font-semibold' >Cost</span>
+          <span className='text=[15px] ml-4 text-white font-semibold' ><Link to="/cost">Cost</Link></span>
         </div>
 
         <div className='p-2.5 mt-40 flex items-center rounded-md px-4
         duration-300 cursor-pointer hover:bg-green-500 text-white' >
           <i className='bi bi-house-door-fill' ></i>
-          <span className='text=[15px] ml-4 text-white font-semibold' >Logout</span>
+          <span className='text=[15px] ml-4 text-white font-semibold' ><Link to="">Logout</Link></span>
         </div>
 
       </div>

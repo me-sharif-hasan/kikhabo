@@ -6,6 +6,7 @@ import Dashboard from './features/dashboard/Dashboard.jsx';
 import LoginPage from './features/login/screens/LoginPage.jsx';
 import Meals from './features/dashboard/screens/Meals.jsx';
 import Registration from './features/registration/screens/Registration.jsx';
+import Home from './features/dashboard/screens/navbar/Home.jsx';
 
 
 function App() {
@@ -17,6 +18,9 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/meals" element={<Meals/>}/>
       <Route path="/register" element={<Registration/>}/>
+      <Route path='/home' element={<Home/>}/>
+
+
      </Routes>
 
 

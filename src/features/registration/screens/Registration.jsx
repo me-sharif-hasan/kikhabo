@@ -13,9 +13,21 @@ const Registration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitted");
-    let name=e.target[0].value;
-    register.doRegister(name).then((response)=>{
+    
+    let id=e.target[0].value;
+    let email=e.target[1].value;
+    let password=e.target[2].value;
+    let firstName=e.target[3].value;
+    let lastName=e.target[4].value;
+    let country=e.target[5].value;
+    let gender=e.target[6].value;
+    let dateOfBirth=e.target[7].value;
+    let weightInKg=e.target[8].value;
+    let heightInFt=e.target[9].value;
+
+
+
+    register.doRegister(id,email,password,firstName,lastName,country,gender,dateOfBirth,weightInKg, heightInKg).then((response)=>{
       console.log(response);
       if(response.status=='success'){
         navigate('/dashboard');
