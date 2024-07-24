@@ -1,7 +1,6 @@
 package com.iishanto.kikhabo.web.aop;
 
 import com.iishanto.kikhabo.common.exception.global.GlobalServerException;
-import com.iishanto.kikhabo.common.exception.security.UnauthorizedAccessException;
 import com.iishanto.kikhabo.common.exception.user.UserLoginFailureException;
 import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureException;
 import com.iishanto.kikhabo.web.response.ErrorCodes;
@@ -34,14 +33,14 @@ public class UserControllerAdvice {
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e){
         List <String> errors=e.getFieldErrors().stream().map(fieldError -> "input %s %s".formatted(fieldError.getField(),fieldError.getDefaultMessage())).toList();
         ErrorResponse err=ErrorResponse.of(errors,ErrorCodes.INVALID_ARGUMENTS);
-        logger.debug("USER REGISTRATION EXCEPTION {}",e.getLocalizedMessage());
+        logger.debug("INVALID DATA EXCEPTION {}",e.getLocalizedMessage());
         return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UserLoginFailureException.class)
     public ResponseEntity<ErrorResponse> handleUserLoginFailureException(UserLoginFailureException e){
         ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.INVALID_CREDENTIALS);
-        logger.debug("USER REGISTRATION EXCEPTION {}",e.getLocalizedMessage());
+        logger.debug("USER LOGIN EXCEPTION {}",e.getLocalizedMessage());
         return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
     }
 
@@ -53,9 +52,9 @@ public class UserControllerAdvice {
     }
 
     @ExceptionHandler(GlobalServerException.class)
-    public ResponseEntity<ErrorResponse> handleUnderminedException(GlobalServerException e){
+    public ResponseEntity<ErrorResponse> handleUndeterminedException(GlobalServerException e){
         ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.SERVER_ERROR);
-        logger.debug("USER REGISTRATION EXCEPTION {}",e.getLocalizedMessage());
+        logger.debug("UNRECOGNIZED SERVER EXCEPTION {}",e.getLocalizedMessage());
         return new ResponseEntity<>(err,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

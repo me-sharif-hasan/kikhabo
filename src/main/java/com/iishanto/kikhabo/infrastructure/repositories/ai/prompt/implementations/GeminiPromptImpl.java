@@ -1,32 +1,30 @@
 package com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iishanto.kikhabo.domain.datasource.UserDataSource;
+import com.iishanto.kikhabo.domain.datasource.WeatherDataSource;
 import com.iishanto.kikhabo.domain.entities.meal.Meal;
+import com.iishanto.kikhabo.domain.entities.people.User;
 import com.iishanto.kikhabo.domain.entities.text.Prompt;
-import com.iishanto.kikhabo.infrastructure.model.UserEntity;
 import com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.PromptProvider;
-import com.iishanto.kikhabo.infrastructure.repositories.database.UserRepository;
+import com.iishanto.kikhabo.infrastructure.services.health.HealthServices;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
 @AllArgsConstructor
 @Component
 public class GeminiPromptImpl implements PromptProvider {
     ObjectMapper objectMapper;
     Logger logger;
-    UserRepository userRepository;
+    UserDataSource userDataSource;
+    HealthServices healthServices;
+    WeatherDataSource weatherDataSource;
 
     @Override
     public String getPrompt(Prompt prompt) {
 
-        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
-        UserDetails userDetails=(UserDetails) authentication.getPrincipal();
-        logger.info("EMAIL II: {}",userDetails.getUsername());
-        UserEntity userEntity =userRepository.findByEmail(userDetails.getUsername());
         String promptString = """
                 {
                     "contents": [{
@@ -54,21 +52,21 @@ public class GeminiPromptImpl implements PromptProvider {
         return promptString;
     }
     private String getUserPrompt(Prompt prompt) {
+        User user=userDataSource.getAuthenticatedUser();
         return
                 """
                 Generator seed: %d,
                 You are a server who server his response by only JSON. Your role is to generate %d meal suggestion and you must plan the groceries to buy.
                 Here are some specification about the person(s) who will consume your result.
-                Number of person(s): %d,
                 Age list of the person(s): %s,
-                BMI list of the person(s): %s,
-                Average working hours list of each person: %s,
+                Average BMI of the person(s): %s,
                 Spicy rating of the meal: %f,
-                Sweetness rating of the meal: %f,
                 Salt rating of the meal: %f,
                 Budget rating out of 10: %f,
                 Current season: %s,
                 Country of origin: %s
+                
+                Always remember to provide meals according to religion. Ex. Muslims do not eat pork, Hindus do not eat cows. For your information, religion of the user is %s.
                 
                 You must follow this JSON schema structure inorder to be successfully parsed by mobile client
                         {
@@ -101,16 +99,14 @@ public class GeminiPromptImpl implements PromptProvider {
                 """.formatted(
                         System.currentTimeMillis(),
                         prompt.getMealPreferenceData().getTotalMealCount(),
-                        4/*Number of total person*/,
-                        "20,22,23,21" /*Age list of the persons*/,
-                        "18,20,30,32" /*BMI list of the persons*/,
-                        "10,5,10,7" /*Working hours list of the persons*/,
+                        StringUtils.join(prompt.getMealPreferenceData().getAgesOfTheMembers(),','),
+                        healthServices.getBMI(user),
                         prompt.getMealPreferenceData().getSpicyRating() /*Spicy rating*/,
-                        3.2 /*Sweetness rating*/,
                         prompt.getMealPreferenceData().getSaltRating() /*Salt rating of the meal*/,
                         prompt.getMealPreferenceData().getPriceRating() /*Budget rating*/,
-                        "Winter" /*Season*/,
-                        "Bangladesh" /*Country*/,
+                        weatherDataSource.getSeason(user.getCountry())/*Season*/,
+                        user.getCountry() /*Country*/,
+                        user.getReligion(),
                         prompt.getLastMealRecord().size(),
                         StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", ")
                 );

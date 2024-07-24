@@ -85,4 +85,13 @@ public class UserDataSourceImpl implements UserDataSource {
     public User getUser(String email) {
         return null;
     }
+
+    @Override
+    public User updateAuthenticatedUser(User user) {
+        User authenticatedUser = getAuthenticatedUser();
+        UserEntity userEntity=userRepository.findByEmail(authenticatedUser.getEmail());
+        userEntity.fill(user);
+        userRepository.save(userEntity);
+        return userEntity.toDomain();
+    }
 }
