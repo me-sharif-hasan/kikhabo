@@ -7,6 +7,7 @@ import LoginPage from './features/login/screens/LoginPage.jsx';
 import Meals from './features/dashboard/screens/Meals.jsx';
 import Registration from './features/registration/screens/Registration.jsx';
 import Home from './features/dashboard/screens/navbar/Home.jsx';
+import Form from "./features/dashboard/Form.jsx";
 
 
 function App() {
@@ -15,8 +16,11 @@ function App() {
 
       <Routes>
       <Route path="/" element={ <LoginPage/>  } />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/meals" element={<Meals/>}/>
+      <Route path="/dashboard" element={<Dashboard />} >
+          <Route path={"meals"} element={<Meals/>}/>
+          <Route path={""} element={<Form/>}/>
+      </Route>
+      {/*<Route path="/meals" element={<Meals/>}/>*/}
       <Route path="/register" element={<Registration/>}/>
       <Route path='/home' element={<Home/>}/>
 

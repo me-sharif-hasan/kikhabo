@@ -1,6 +1,6 @@
 import React from 'react';
 import Form from  './Form.jsx';
-import {Link} from 'react-router-dom';
+import {Link, Outlet} from 'react-router-dom';
 
 const Navbar = () => {
   return (
@@ -42,8 +42,7 @@ const Navbar = () => {
         </div>
 
       </div>
-      <Form/>
-
+      <Outlet/>
     </div>
     
   )
