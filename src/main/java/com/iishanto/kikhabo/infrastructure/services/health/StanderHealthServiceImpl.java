@@ -6,8 +6,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class StanderHealthServiceImpl implements HealthServices{
     public double getBMI(User user){
-        var height=user.getHeightInFt()*0.3084;
-        var weight=user.getWeightInKg();
-        return weight/(height*height);
+        float userHeight= user.getHeightInFt();
+        float userWeight=user.getWeightInKg();
+        var height=userHeight*0.3084;
+        return userWeight/(height*height);
     }
 }
