@@ -1,5 +1,6 @@
 package com.iishanto.kikhabo.infrastructure.config;
 
+import com.iishanto.kikhabo.infrastructure.services.security.CorsFilter;
 import com.iishanto.kikhabo.infrastructure.services.security.JwtSecurityFilterChain;
 import com.iishanto.kikhabo.infrastructure.services.security.JwtService;
 import jakarta.servlet.ServletException;
@@ -24,6 +25,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -39,6 +41,7 @@ import java.util.List;
 public class SecurityConfig {
     Logger logger;
     JwtSecurityFilterChain filterChain;
+    CorsFilter corsFilter;
     HandlerExceptionResolver handlerExceptionResolver;
 
     @Bean
@@ -55,6 +58,7 @@ public class SecurityConfig {
                 })
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(filterChain, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
                 .exceptionHandling(
                         httpSecurityExceptionHandlingConfigurer -> {
                             httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(

@@ -31,6 +31,7 @@ public class UserDto {
     private String country;
     @NotEmpty
     private String gender;
+    private String religion;
 
     @NotEmpty
     private String dateOfBirth;
@@ -50,6 +51,7 @@ public class UserDto {
                 .dateOfBirth(dateOfBirth)
                 .weightInKg(weightInKg)
                 .heightInFt(heightInFt)
+                .religion(religion)
                 .build();
     }
 }

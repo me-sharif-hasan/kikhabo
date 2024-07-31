@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.boot.SpringApplication;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.List;
 import java.util.UUID;
@@ -50,22 +51,24 @@ public class UserEntity {
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
     @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonManagedReference
+    @Lazy
     private List<MealHistoryEntity> mealHistories;
 
     public User toDomain() {
         ObjectMapper objectMapper=new ObjectMapper();
         User user=objectMapper.convertValue(this,User.class);
-//        return User.builder()
-//                .id(id)
-//                .country(country)
-//                .email(email)
-//                .firstName(firstName)
-//                .lastName(lastName)
-//                .weightInKg(weightInKg)
-//                .gender(gender)
-//                .dateOfBirth(dateOfBirth)
-//                .heightInFt(heightInFt)
-//                .build();
         return user;
+    }
+
+    public void fill(User user) {
+        if(user.getEmail()!=null) email=user.getEmail();
+        if(user.getPassword()!=null) password=user.getPassword();
+        if(user.getFirstName()!=null) firstName=user.getFirstName();
+        if(user.getLastName()!=null) lastName=user.getLastName();
+        if(user.getGender()!=null) gender=user.getGender();
+        if(user.getCountry()!=null) country=user.getCountry();
+        if(user.getDateOfBirth()!=null) dateOfBirth=user.getDateOfBirth();
+        if(user.getWeightInKg()!=null) weightInKg=user.getWeightInKg();
+        if(user.getHeightInFt()!=null) heightInFt=user.getHeightInFt();
     }
 }
