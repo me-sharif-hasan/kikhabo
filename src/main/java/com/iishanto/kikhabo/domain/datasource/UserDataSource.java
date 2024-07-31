@@ -15,4 +15,6 @@ public interface UserDataSource {
     User getAuthenticatedUser();
     String getAuthUserEmail();
     User getUser(String email);
+
+    User updateAuthenticatedUser(User user);
 }
