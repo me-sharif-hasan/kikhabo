@@ -19,6 +19,7 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} >
           <Route path={"meals"} element={<Meals/>}/>
           <Route path={""} element={<Form/>}/>
+          
       </Route>
       {/*<Route path="/meals" element={<Meals/>}/>*/}
       <Route path="/register" element={<Registration/>}/>

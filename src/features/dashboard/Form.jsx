@@ -40,8 +40,7 @@ const Form = () => {
         <Routes>
           <Route path="/" element={<div className='ml-[300px] flex justify-center items-center '>
 
-            <div
-                className=" mt-24 border border-slate-400 rounded-md p-8 shadow-lg backdrop-filter backdrop-blur-sm bg-white bg-opacity-80 relative">
+            <div className=" mt-24 border border-slate-400 rounded-md p-8 shadow-lg backdrop-filter backdrop-blur-sm bg-white bg-opacity-80 relative">
               <form className=' ' onSubmit={handleSubmit}>
                 <h1 className='font-[Poppins] font-bold ml-20 '>KIKHABO?</h1>
                 <InputText/>

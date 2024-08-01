@@ -14,18 +14,19 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-
+  const [loading, setLoading] = useState(false);
   const handleSubmit = async (e) => {
     e.preventDefault();
     let email=e.target[0].value;
     let password=e.target[1].value;
-    
+    setLoading(true);
     login.doLogin(email,password).then((response)=>{
       
       console.log(response);
 
       if (response.status=='success') {
         // Redirect to the Dashboard page
+        setLoading(false);
         navigate('/dashboard');
       }
     }).catch((error)=>{
@@ -47,8 +48,8 @@ const LoginPage = () => {
 
             <InputTextField/>
             <RememberMe/>                          
-            <PrimaryButton/>
-            {error && <p className="error">{error}</p>}
+            <PrimaryButton loading={loading} />
+            <p className="error">{error}</p>
             </form>
 
         </div>
