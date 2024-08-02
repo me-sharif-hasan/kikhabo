@@ -8,6 +8,7 @@ import com.iishanto.kikhabo.domain.usercase.user.GetUserUseCase;
 import com.iishanto.kikhabo.domain.usercase.user.UserLoginUseCase;
 import com.iishanto.kikhabo.domain.usercase.user.UserRegistrationUseCase;
 import com.iishanto.kikhabo.domain.usercase.user.UserUpdateUseCase;
+import com.iishanto.kikhabo.domain.usercase.user.command.out.GetUserResponse;
 import com.iishanto.kikhabo.web.dto.user.CredentialsDto;
 import com.iishanto.kikhabo.web.dto.user.LoginResponseDto;
 import com.iishanto.kikhabo.web.dto.user.UserDto;
@@ -54,9 +55,9 @@ public class UserController {
     }
 
     @GetMapping("current-user")
-    public ResponseEntity<SuccessResponse> getUser() throws Exception {
-        SuccessResponse successResponse=new SuccessResponse();
-        successResponse.setData(getUserUseCase.execute(null));
+    public ResponseEntity<SuccessResponse<GetUserResponse>> getUser() throws Exception {
+        SuccessResponse<GetUserResponse> successResponse=new SuccessResponse<>();
+        successResponse.setData(GetUserResponse.fromDomain(getUserUseCase.execute(null)));
         return new ResponseEntity<>(successResponse,HttpStatus.OK);
     }
 
