@@ -26,6 +26,7 @@ public class User {
     private Float heightInFt;
     private String religion;
     private List<MealHistory> mealHistories;
+    private Preference preference;
     @JsonIgnore
     public String getPassword() {
         return password;
