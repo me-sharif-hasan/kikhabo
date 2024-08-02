@@ -2,7 +2,7 @@ package com.iishanto.kikhabo.domain.usercase.preference.command.in;
 
 public record UpdatePreferenceCommand(
         Float spicyRating,
-        Float BudgetRating,
+        Float budgetRating,
         Float SaltTasteRating,
         Boolean hasDiabetics,
         Boolean isPregnant,
