@@ -1,8 +1,9 @@
+
 # Ki khabo (কি খাবো) - backend server with springboot
 ### A system focused on giving intelligent meal suggestion while maintaining proper nutrition and testes.
 Api docs: https://kikhabo.onrender.com/swagger-ui/index.html
 
-Kikhabo is a online platform that uses machine learning, weather forecast, season and past few days meal history to predict it's user what to eat today and able to give dedicated grocery suggestions in the given price range (estimated).
+Kikhabo is an online platform that uses machine learning, weather forecast, season and past few days meal history to predict its user what to eat today and able to give dedicated grocery suggestions in the given price range (estimated).
 ## Features
 - User login and registration.
 - Creating meal plan and preference.
