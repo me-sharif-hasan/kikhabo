@@ -2,6 +2,8 @@ package com.iishanto.kikhabo.domain.datasource;
 
 import com.iishanto.kikhabo.domain.entities.weather.Weather;
 
+import java.io.IOException;
+
 public interface WeatherDataSource {
     Weather getWeather(Double lat, Double lon);
     Weather getWeather(String locationName);
