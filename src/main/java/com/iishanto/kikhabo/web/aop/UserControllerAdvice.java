@@ -68,6 +68,7 @@ public class UserControllerAdvice {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllException(Exception e){
         logger.debug("UNKNOWN EXCEPTION {}",e.getLocalizedMessage());
+        logger.debug("Exception Happened",e);
         ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.UNKNOWN_ERROR);
         return new ResponseEntity<>(err,HttpStatus.SERVICE_UNAVAILABLE);
     }
