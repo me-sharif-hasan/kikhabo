@@ -1,6 +1,8 @@
 package com.iishanto.kikhabo.infrastructure.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iishanto.kikhabo.domain.entities.people.User;
@@ -44,20 +46,36 @@ public class UserEntity {
     @NotEmpty
     private String country;
 
+    private String religion;
+
     private String dateOfBirth;
     private Float weightInKg;
     private Float heightInFt;
 
-    @OneToMany(cascade = CascadeType.ALL,mappedBy = "user")
+    @OneToMany(cascade = CascadeType.ALL,mappedBy = "user",fetch = FetchType.LAZY)
     @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonManagedReference
-    @Lazy
+    @JsonIgnore
     private List<MealHistoryEntity> mealHistories;
 
+    @OneToOne
+    private PreferenceEntity preference;
+
     public User toDomain() {
-        ObjectMapper objectMapper=new ObjectMapper();
-        User user=objectMapper.convertValue(this,User.class);
-        return user;
+        User userDomain=new User();
+        userDomain.setId(id);
+        userDomain.setEmail(email);
+        userDomain.setPassword(password);
+        userDomain.setFirstName(firstName);
+        userDomain.setLastName(lastName);
+        userDomain.setGender(gender);
+        userDomain.setCountry(country);
+        userDomain.setDateOfBirth(dateOfBirth);
+        userDomain.setWeightInKg(weightInKg);
+        userDomain.setHeightInFt(heightInFt);
+        userDomain.setReligion(religion);
+        userDomain.setPreference(preference.toDomain());
+        return userDomain;
     }
 
     public void fill(User user) {
@@ -70,5 +88,6 @@ public class UserEntity {
         if(user.getDateOfBirth()!=null) dateOfBirth=user.getDateOfBirth();
         if(user.getWeightInKg()!=null) weightInKg=user.getWeightInKg();
         if(user.getHeightInFt()!=null) heightInFt=user.getHeightInFt();
+        if(user.getReligion()!=null) religion=user.getReligion();
     }
 }
