@@ -74,7 +74,7 @@ public class UserEntity {
         userDomain.setWeightInKg(weightInKg);
         userDomain.setHeightInFt(heightInFt);
         userDomain.setReligion(religion);
-        userDomain.setPreference(preference.toDomain());
+        if(preference!=null) userDomain.setPreference(preference.toDomain());
         return userDomain;
     }
 
