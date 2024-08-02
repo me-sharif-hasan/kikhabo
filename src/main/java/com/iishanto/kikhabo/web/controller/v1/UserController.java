@@ -4,6 +4,7 @@ import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureExcepti
 import com.iishanto.kikhabo.domain.datasource.WeatherDataSource;
 import com.iishanto.kikhabo.domain.entities.people.Credentials;
 import com.iishanto.kikhabo.domain.entities.people.User;
+import com.iishanto.kikhabo.domain.usercase.user.GetUserUseCase;
 import com.iishanto.kikhabo.domain.usercase.user.UserLoginUseCase;
 import com.iishanto.kikhabo.domain.usercase.user.UserRegistrationUseCase;
 import com.iishanto.kikhabo.domain.usercase.user.UserUpdateUseCase;
@@ -11,6 +12,7 @@ import com.iishanto.kikhabo.web.dto.user.CredentialsDto;
 import com.iishanto.kikhabo.web.dto.user.LoginResponseDto;
 import com.iishanto.kikhabo.web.dto.user.UserDto;
 import com.iishanto.kikhabo.web.dto.user.UserUpdateDto;
+import com.iishanto.kikhabo.web.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,6 +30,7 @@ public class UserController {
     UserLoginUseCase userLoginUseCase;
     UserUpdateUseCase userUpdateUseCase;
     WeatherDataSource weatherDataSource;
+    GetUserUseCase getUserUseCase;
     Logger logger;
 
     @SecurityRequirements
@@ -48,6 +51,13 @@ public class UserController {
     public ResponseEntity<User> update(@Valid @RequestBody UserUpdateDto user) throws Exception {
         User domainUser=user.toDomain();
         return new ResponseEntity<>(userUpdateUseCase.execute(domainUser),HttpStatus.OK);
+    }
+
+    @GetMapping("current-user")
+    public ResponseEntity<SuccessResponse> getUser() throws Exception {
+        SuccessResponse successResponse=new SuccessResponse();
+        successResponse.setData(getUserUseCase.execute(null));
+        return new ResponseEntity<>(successResponse,HttpStatus.OK);
     }
 
 }
