@@ -66,7 +66,15 @@ public class GeminiPromptImpl implements PromptProvider {
         return promptString;
     }
     private String getUserPrompt(Prompt prompt,User user) {
-        Preference preference=preferenceDataSource.getPreference();
+        Preference preference=new Preference();
+        try {
+            preferenceDataSource.getPreference();
+        }catch (Exception e){
+            preference = new Preference();
+            preference.setBudgetRating(5);
+            preference.setSaltTasteRating(3);
+            preference.setSpicyRating(4);
+        }
         return
                 """
                 Generator seed: %d,
