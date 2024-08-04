@@ -38,4 +38,21 @@ public class FamilyDataSourceImpl implements FamilyDataSource {
             throw new FamilyMemberCreationException("Invalid user");
         }
     }
+
+    @Override
+    public List<User> getFamilyMembersOfCurrentUser() {
+        String email=userDataSource.getAuthUserEmail();
+        UserEntity user=userRepository.findByEmail(email);
+        List <UserEntity> members=user.getFamilyMembers();
+        return members.stream().map(UserEntity::toDomain).toList();
+    }
+
+    @Override
+    public void deleteFamilyMembers(List<Long> familyMemberIds) {
+        String email=userDataSource.getAuthUserEmail();
+        UserEntity user=userRepository.findByEmail(email);
+        List <UserEntity> members=user.getFamilyMembers().stream().filter(userEntity -> !familyMemberIds.contains(userEntity.getId())).toList();
+        user.setFamilyMembers(members);
+        userRepository.save(user);
+    }
 }
