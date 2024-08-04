@@ -14,6 +14,9 @@ public class SuccessResponse <R> {
         this.status = status;
         this.message = message;
     }
+    public SuccessResponse(String message){
+        this.message = message;
+    }
     private String status="success";
     private String message;
     private R data;

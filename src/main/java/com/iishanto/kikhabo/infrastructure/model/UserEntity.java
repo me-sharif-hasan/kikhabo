@@ -58,6 +58,17 @@ public class UserEntity {
     @JsonIgnore
     private List<MealHistoryEntity> mealHistories;
 
+    @JoinTable(
+            name = "user_family_members",
+            joinColumns = @JoinColumn(name = "user_entity_id"),
+            inverseJoinColumns = @JoinColumn(name = "family_members_id"),
+            uniqueConstraints = {@UniqueConstraint(columnNames = {"user_entity_id", "family_members_id"})}
+    )
+    @ManyToMany(cascade = CascadeType.DETACH,fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonIgnore
+    private List<UserEntity> familyMembers;
+
     @OneToOne
     private PreferenceEntity preference;
 
