@@ -5,13 +5,12 @@ import SuggestButton from './widgets/SuggestButton.jsx';
 import dashboard_datasource from './datasource/dashboard_datasource.js';
 
 const Form = () => {
-
     let meal = new dashboard_datasource();
-
     const [error, setError] = useState('');
+    
     const navigate = useNavigate();
-
     const [loading, setLoading] = useState(false);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         let spicyRating = e.target[0].value;
@@ -23,7 +22,6 @@ const Form = () => {
         setLoading(true);
         meal.mealRequest(spicyRating, saltRating, dayCount, priceRating, totalMealCount, agesOfTheMembers).then((response) => {
             console.log(response);
-
             if (response.status === 'success') {
                 setLoading(false);
                 navigate('/dashboard/meals', {state:response});
