@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
-import {Route, Routes, useNavigate} from 'react-router-dom';
-import InputText from './widgets/InputText.jsx';
-import SuggestButton from './widgets/SuggestButton.jsx';
-import dashboard_datasource from './datasource/dashboard_datasource.js';
+import React from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import dashboard_datasource from '../../../datasource/dashboard_datasource';
+import InputText from '../../../widgets/InputText';
+import SuggestButton from '../../../widgets/SuggestButton';
 
-const Form = () => {
+const SetPreferences = () => {
     let meal = new dashboard_datasource();
     const [error, setError] = useState('');
     
@@ -24,7 +25,7 @@ const Form = () => {
             console.log(response);
             if (response.status === 'success') {
                 setLoading(false);
-                navigate('/dashboard/meals', {state:response});
+                <h1>Congratulations!! Your preferences are saved . </h1>
             }
         }).catch((error) => {
             console.log(error);
@@ -33,24 +34,18 @@ const Form = () => {
 
     };
 
-
     return (
-        <Routes>
-          <Route path="/" element={<div className='ml-[300px] flex justify-center items-center '>
-
-            <div className=" mt-24 border border-slate-400 rounded-md p-8 shadow-lg backdrop-filter backdrop-blur-sm bg-white bg-opacity-80 relative">
+        <div className='flex justify-center items-center align-middle'>
+            <div className="border mt-14 border-slate-400 rounded-md p-8 shadow-lg backdrop-filter backdrop-blur-sm bg-white bg-opacity-80 relative">
               <form className=' ' onSubmit={handleSubmit}>
                 <h1 className='font-[Poppins] font-bold ml-20 '>KIKHABO?</h1>
                 <InputText/>
                 <SuggestButton loading={loading}/>
-                {error && <p className="error">{error}</p>}
+                {error && <p className="error text-wrap">{error}</p>}
               </form>
-
             </div>
-
-          </div>}/>
-        </Routes>
+         </div>
     )
 }
 
-export default Form;
+export default SetPreferences;

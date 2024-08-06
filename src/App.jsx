@@ -1,37 +1,34 @@
 import React from 'react';
-import '../index.css' ;
-
+import '../index.css';
 import { Routes, Route } from 'react-router-dom';
-import Dashboard from './features/dashboard/Dashboard.jsx';
+import Dashboard from './features/dashboard/screens/Dashboard.jsx';
 import LoginPage from './features/login/screens/LoginPage.jsx';
-import Meals from './features/dashboard/screens/Meals.jsx';
+import Meals from './features/dashboard/screens/meals/Meals.jsx';
 import Registration from './features/registration/screens/Registration.jsx';
-import Home from './features/dashboard/screens/navbar/Home.jsx';
-import Form from "./features/dashboard/Form.jsx";
-
+import Form from "./features/dashboard/screens/Form.jsx";
+import Profile from "./features/dashboard/account/SetAccount.jsx"
+import ManageFamily from './features/dashboard/screens/navbar/family-manage/ManageFamily.jsx';
+import ManagePrefrences from './features/dashboard/screens/navbar/preferences-manage/ManagePrefrences.jsx';
 
 function App() {
   return (
     <>
-
       <Routes>
-      <Route path="/" element={ <LoginPage/>  } />
-      <Route path="/dashboard" element={<Dashboard />} >
-          <Route path={"meals"} element={<Meals/>}/>
-          <Route path={""} element={<Form/>}/>
-          
-      </Route>
-      {/*<Route path="/meals" element={<Meals/>}/>*/}
-      <Route path="/register" element={<Registration/>}/>
-      <Route path='/home' element={<Home/>}/>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/dashboard" element={<Dashboard />} >
+          <Route path={"meals"} element={<Meals />} />
+          <Route path={""} element={<Form />} />
+          <Route path={"home"} element={<Form/> } />
+          <Route path={"manage_family"} element={<ManageFamily/> } />
+          <Route path={"manage_preferences"} element={<ManagePrefrences/> } />
 
-
-     </Routes>
-
-
+        </Route>
+        <Route path="/register" element={<Registration />} />
+        
+        <Route path='/profile' element={<Profile/>}/>
+      </Routes>
     </>
-
   )
 }
 
-export default App
+export default App;
