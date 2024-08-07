@@ -12,27 +12,30 @@ const Navbar = () => {
   return (
 
     <div className='font-comforta' >
-      <div className='sidebar fixed h-screen lg:left-0 p-2 w-[300px] overflow-y-auto 
+      <div className='sidebar fixed h-screen lg:left-0 w-[300px] overflow-y-auto 
       text-center bg-gray-600' >
         <div className='text-white-900 text-xl'>
         </div>
 
-        <div className='p-2.5 mt-3 flex items-center  px-4
+      <Link to="/dashboard/home" className={` ${activeLink === '/home' ? 'bg-orange-600' : 'text-white'}`} 
+          onClick={() => setActiveLink('/home')} >  
+        <div className='p-2.5 flex items-center px-4 
         duration-300 cursor-pointer hover:bg-orange-600 text-white' >
           <AiOutlineDashboard/>
           <span className='text=[15px] ml-4 text-white ' > 
-          <Link to="/dashboard/home" className={` ${activeLink === '/home' ? 'bg-orange-600' : 'text-white'}`} 
-          onClick={() => setActiveLink('/home')} >Dashboard</Link></span>
-          <GoArrowLeft className='ml-16 cursor-pointer ' />
+          Dashboard</span>
         </div>
+        </Link>
 
+        <Link to="/dashboard/meal_stat" className={`${activeLink === '/meal_stat' ? 'bg-orange-600' : 'text-white'}`} 
+            onClick={() => setActiveLink('/meal_stat')}>
         <div className='p-2.5 mt-3 flex items-center px-4
         duration-300 cursor-pointer hover:bg-orange-600 text-white' >
           <AiFillApi />
           <span className='text=[15px] ml-4 text-white' >
-            <Link to="/dashboard/meal_stat" className={`${activeLink === '/meal_stat' ? 'bg-orange-600' : 'text-white'}`} 
-            onClick={() => setActiveLink('/meal_stat')}>Meal Statistics</Link></span>
+            Meal Statistics</span>
         </div>
+        </Link>
 
         <div className='p-2.5 mt-3 flex items-center  px-4
         duration-300 cursor-pointer hover:bg-orange-600 text-white' >
