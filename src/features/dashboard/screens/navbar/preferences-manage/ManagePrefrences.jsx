@@ -2,11 +2,10 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 
 const ManagePrefrences = () => {
-  const {state}=useLocation();
-    const {data}=state;
-    const [pref,setMeals]=useState(data?.meals);
+  const location=useLocation();
+  const current_user=location.state;
 
-  if(!data.preference){
+  if(!current_user.data.preference){
     return (
       <div>
         <h1>You have no preferences!! Unbelievable!! Please add your preferences .</h1>
