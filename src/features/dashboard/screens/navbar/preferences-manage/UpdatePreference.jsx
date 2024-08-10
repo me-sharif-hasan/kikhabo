@@ -2,6 +2,7 @@ import React from 'react';
 import update_preference from '../../../datasource/update_preference.js';
 import InputTextField from './widgets/InputTextField.jsx';
 import SaveButton from './widgets/SaveButton.jsx';
+import { useState } from 'react';
 
 const UpdatePreference = () => {
     let meal = new update_preference();

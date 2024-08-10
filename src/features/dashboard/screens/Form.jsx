@@ -36,9 +36,9 @@ const Form = () => {
 
     return (
         <div className='flex justify-center items-center align-middle'>
-            <div className="border mt-14 border-slate-400 rounded-md p-8 shadow-lg backdrop-filter backdrop-blur-sm bg-white bg-opacity-80 relative">
-              <form className=' ' onSubmit={handleSubmit}>
-                <h1 className='font-[Poppins] font-bold ml-20 '>KIKHABO?</h1>
+            <div className=" border mt-14 border-slate-400 rounded-md p-8 shadow-lg backdrop-filter backdrop-blur-sm bg-white bg-opacity-80 relative">
+              <form onSubmit={handleSubmit}>
+                <h1 className='font-[Poppins] font-bold pb-4 text-center'>Get New Meal Ideas</h1>
                 <InputText/>
                 <SuggestButton loading={loading}/>
                 {error && <p className="error text-wrap">{error}</p>}
