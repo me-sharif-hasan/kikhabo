@@ -4,7 +4,7 @@ import axios from 'axios';
 class current_user_datasource  {
     currentUser=async()=>{
         try{ 
-            const response =await axios.post(
+            const response =await axios.get(
                 `${baseURL}/api/v1/user/current-user`,
                  {
                     headers: {

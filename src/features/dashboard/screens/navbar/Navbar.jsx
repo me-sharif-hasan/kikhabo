@@ -8,7 +8,7 @@ import current_user_datasource from '../../datasource/current_user_datasource';
 
 const Navbar = () => {
 
-  let current_user = new current_user_datasource();
+    let current_user = new current_user_datasource();
     const [error, setError] = useState('');
     const [activeLink, setActiveLink] = useState('');
     const navigate = useNavigate();
