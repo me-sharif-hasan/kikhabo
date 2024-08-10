@@ -99,7 +99,7 @@ public class GeminiPromptImpl implements PromptProvider {
                                                 meals:[
                                                     {
                                                         mealName:<name of the meal>,
-                                                        totalEnergy:<total energy in kilocalorie| in float>,
+                                                        totalEnergy:<total energy in kilocalorie| in float, this field is must>,
                                                         note:<if any disclaimer needed to be maintained>,
                                                         ingredients:<comma seperated list of ingredients>,
                                                         groceries:[
