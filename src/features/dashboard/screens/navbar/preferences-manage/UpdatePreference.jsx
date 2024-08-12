@@ -22,7 +22,7 @@ const UpdatePreference = () => {
             console.log(response);
             if (response.status === 'success') {
                 setLoading(false);
-                <h1>Congratulations!! Your preferences are saved . </h1>
+                <h1>Congratulations!! Your preferences are updated . </h1>
             }
         }).catch((error) => {
             console.log(error);

@@ -23,17 +23,15 @@ function App() {
           <Route path={""} element={<Form />} />
           <Route path={"home"} element={<Form/> } />
           <Route path={"manage_family"} element={<ManageFamily/> } />
-
-          <Route path={"manage_preferences"} element={<ManagePrefrences/> } >
-            <Route path={"update_pref"} element={<UpdatePreference/>} />
-          </Route>
-
+          <Route path={"manage_preferences"} element={<ManagePrefrences/> } />
           <Route path={"meal_stat"} element={<MealStat/> }/>
           <Route path={"cost"} element={<Costs/> }/>
         </Route>
+
         <Route path="/register" element={<Registration />} />
-        
         <Route path='/profile' element={<Profile/>}/>
+        
+
       </Routes>
     </>
   )
