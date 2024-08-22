@@ -11,7 +11,6 @@ import ManageFamily from './features/dashboard/screens/navbar/family-manage/Mana
 import ManagePrefrences from './features/dashboard/screens/navbar/preferences-manage/ManagePrefrences.jsx';
 import MealStat from './features/dashboard/screens/navbar/statistics_meal/MealStat.jsx';
 import Costs from './features/dashboard/screens/navbar/total_costs/Costs.jsx';
-import UpdatePreference from './features/dashboard/screens/navbar/preferences-manage/UpdatePreference.jsx';
 
 function App() {
   return (

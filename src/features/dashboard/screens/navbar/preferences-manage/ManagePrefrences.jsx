@@ -2,7 +2,6 @@ import React from 'react';
 import Preferences from './Preferences';
 import { useEffect, useState } from 'react';
 import Modal from 'react-modal';
-import InputText from '../preferences-manage/widgets/InputTextField.jsx';
 import update_preference from '../../../datasource/update_preference.js';
 import current_user_datasource from '../../../datasource/current_user_datasource.js';
 
@@ -63,20 +62,23 @@ const ManagePrefrences = () => {
         }).catch((error) => {
             console.log(error);
             setError(error.message);
-        })
-    
-  };
+        });
+      };
 
   return (
     <div>
       <div className='flex relative'>
-        {JSON.stringify(current_user)} 
+        <p>{JSON.stringify(current_user?.preference.spicyRating)} </p>
 
       {!current_user?.preference ? (
         <h1 className='h-52 mt-0 fixed' >You have no preferences!! Unbelievable!! Please add your preferences.</h1>
       ) : (
         <Preferences />   
-      )}
+      )}!current_user?.preference ? (
+        <h1 className='h-52 mt-0 fixed' >You have no preferences!! Unbelievable!! Please add your preferences.</h1>
+      ) : (
+        <Preferences />   
+      )
       </div>
       <div className='flex relative mt-96 ml-96 align-middle '>
       <button onClick={handleClick} className="relative w-52 text-[18px] rounded-full bg-emerald-700 hover:bg-white py-2 transition-colors duration-300" >{pbutton}</button>
@@ -90,11 +92,11 @@ const ManagePrefrences = () => {
                 <h1 className='font-[Poppins] font-bold mt-6 ml-12 pb-5 text-gray-700 '>Add Your Preferences</h1>
                 {/* Startting of the input fields */}
                 <div className="relative my-4 " >
-                <input   className="block w-72 py-2.3 px-0 text-sm text-black bg-transparent border-0 border-b-2 border-green-800 appearance-none dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:text-black focus:border-green-600 peer " type="number"/>
+                <input   className="block w-72 py-2.3 px-0 text-sm text-black bg-transparent border-0 border-b-2 border-green-800 appearance-none dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:text-black focus:border-green-600 peer " value={!current_user?.preference.spicyRating ? (null ) : ( current_user?.preference.spicyRating)} type="number"/>
                 <label className=" absolute text-xl text-gray-700 transform scale-75 top-3 -z-10 origin-[0] peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-focus:scale-75 -translate-y-8 duration-500" htmlFor=''>Rate your spicy taste</label>
             </div>
             <div  className="relative my-4">
-                <input   className="block w-72 py-2.3 px-0 text-sm text-black bg-transparent border-0 border-b-2 border-green-800 appearance-none dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:text-black focus:border-green-600 peer " type="number"/>
+                <input   className="block w-72 py-2.3 px-0 text-sm text-black bg-transparent border-0 border-b-2 border-green-800 appearance-none dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:text-black focus:border-green-600 peer " value={4} type="number"/>
                 <label className="absolute text-xl text-gray-700 transform scale-75 top-3 -z-10 origin-[0] peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-focus:scale-75 -translate-y-8 duration-500" htmlFor=''>Suitable Price Rate</label>
             </div>
 
