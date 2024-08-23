@@ -8,6 +8,7 @@ import current_user_datasource from '../../../datasource/current_user_datasource
 const ManagePrefrences = () => {
   let preference = new update_preference();
   let user = new current_user_datasource();
+
   const [error, setError] = useState('');
   const [current_user,setCurrentUser]=useState({});
   const [pbutton, setButton]=useState('');
@@ -16,7 +17,7 @@ const ManagePrefrences = () => {
   const [loadData, setLoadData] = useState(false);
 
   const [spicyRating, setSpicyRating] = useState('');
-  const [priceRating, setPriceRating] = useState('');
+  const [budgetRating, setBudgetRating] = useState('');
   const [saltRating, setSaltRating] = useState('');
   const [hasDiabets, setHasDiabets] = useState('');
   const [isPregnant, setIsPregnant] = useState('');
@@ -28,10 +29,10 @@ const ManagePrefrences = () => {
       if (response.status === 'success') {
           setCurrentUser(response.data);
           setSpicyRating(response.data?.preference?.spicyRating || '');
-          setPriceRating(response.data?.preference?.budgetRating || '');
+          setBudgetRating(response.data?.preference?.budgetRating || '');
           setSaltRating(response.data?.preference?.saltTasteRating || '');
-          setHasDiabets(response.data?.preference?.hasDiabetics? 'Yes' : 'No');
-          setIsPregnant(response.data?.preference?.pregnant ? 'Yes' : 'No');
+          setHasDiabets(response.data?.preference?.hasDiabetics? 'true' : 'false');
+          setIsPregnant(response.data?.preference?.pregnant ? 'true' : 'false');
           setSpecialNotes(response.data?.preference?.specialNotes || '');
       }
   }).catch((error) => {
@@ -55,11 +56,10 @@ const ManagePrefrences = () => {
     openModal(); };
 
   const handleSubmit = (e) => {
-    console.log('Form is eagerlyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy submitted');
+    console.log('Form is eagerlyyyyyyyyyyyyyyyyyyyyyyyyyy submitted');
     e.preventDefault();
-    console.log('Form is submitted');
         setLoading(true);
-        preference.setPreference(spicyRating,priceRating,saltRating,hasDiabets,isPregnant, specialNotes).then((response) => {
+        preference.setPreference(spicyRating,budgetRating,saltRating,hasDiabets,isPregnant, specialNotes).then((response) => {
             console.log(response);
             if (response.status === 'success') {
                 setLoading(false);
@@ -78,13 +78,13 @@ const ManagePrefrences = () => {
   return (
     <div>
       <div className='flex relative'>
-        <p>{JSON.stringify(current_user?.preference)} </p>
+       {/* <p>{JSON.stringify(current_user?.preference)} </p> */} 
         
 
       {!current_user?.preference ? (
         <h1 className='h-52 mt-0 fixed' >You have no preferences!! Unbelievable!! Please add your preferences.</h1>
       ) : (
-        <Preferences />   
+        <Preferences preferences={current_user?.preference} />   
       )}
       </div>
       <div className='flex relative mt-96 ml-96 align-middle '>
@@ -105,7 +105,7 @@ const ManagePrefrences = () => {
             </div>
             <div  className="relative my-4">
                 <input   className="block w-72 py-2.3 px-0 text-sm text-black bg-transparent border-0 border-b-2 border-green-800 appearance-none dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:text-black focus:border-green-600 peer " 
-                value={priceRating} onChange={(e) => setPriceRating(e.target.value)} type="number"/>
+                value={budgetRating} onChange={(e) => setBudgetRating(e.target.value)} type="number"/>
                 <label className="absolute text-xl text-gray-700 transform scale-75 top-3 -z-10 origin-[0] peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-focus:scale-75 -translate-y-8 duration-500" htmlFor=''>Suitable Price Rate</label>
             </div>
 
@@ -134,7 +134,7 @@ const ManagePrefrences = () => {
                 <label className="absolute text-xl text-gray-700 transform scale-75 top-3 -z-10 origin-[0] peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-focus:scale-75 -translate-y-8 duration-500" htmlFor=''>Any special notes ?</label>
             </div>
              {/* Ending of the input fields */}
-                <button onClick={()=>{setLoading(true);} } className="ml-10 relative w-52 text-[18px] rounded-full bg-emerald-700 hover:bg-white py-2 transition-colors duration-300" type="submit" disabled={loading}>
+                <button className="ml-10 relative w-52 text-[18px] rounded-full bg-emerald-700 hover:bg-white py-2 transition-colors duration-300" type="submit" disabled={loading}>
                   {loading ? 'Adding...' : 'Submit'} </button>
               </form>
         </div>
