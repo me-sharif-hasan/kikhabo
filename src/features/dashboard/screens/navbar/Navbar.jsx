@@ -2,35 +2,10 @@ import { useState } from 'react';
 import React from 'react';
 import { AiFillApi, AiFillHeart, AiOutlineDashboard, AiOutlineDollar, AiOutlineLogout, AiOutlineTeam } from 'react-icons/ai';
 import {Link} from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import current_user_datasource from '../../datasource/current_user_datasource';
-
 
 const Navbar = () => {
-
-    let current_user = new current_user_datasource();
-    const [error, setError] = useState('');
     const [activeLink, setActiveLink] = useState('');
-    const navigate = useNavigate();
    
-
-    const handleClick = async (e) => {
-        e.preventDefault();
-        setActiveLink('/manage_preferences');
-        current_user.currentUser().then((response) => {
-            console.log(response);
-            if (response.status === 'success') {
-                navigate('/dashboard/manage_preferences', {state:response});
-            }
-        }).catch((error) => {
-            console.log(error);
-            setError(error.message);
-        })
-
-    };
-
-
-  
   return (
     <div className='font-comforta' >
       <div className='sidebar fixed h-screen lg:left-0 w-[300px] overflow-y-auto 
@@ -75,8 +50,7 @@ const Navbar = () => {
           <span className='text=[15px] ml-4 text-white ' >Manage Family</span>
         </div></Link>
 
-        <Link to="/dashboard/manage_preferences"  className={`${activeLink === '/manage_preferences' ? 'bg-orange-600' : 'text-white'}`} 
-            onClick={handleClick}>
+        <Link to="/dashboard/manage_preferences"  className={`${activeLink === '/manage_preferences' ? 'bg-orange-600' : 'text-white'}`} >
         <div className='p-2.5 mt-3 flex items-center  px-4
         duration-300 cursor-pointer hover:bg-orange-600 text-white' >
           <AiFillHeart/>

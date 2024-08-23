@@ -11,7 +11,6 @@ import ManageFamily from './features/dashboard/screens/navbar/family-manage/Mana
 import ManagePrefrences from './features/dashboard/screens/navbar/preferences-manage/ManagePrefrences.jsx';
 import MealStat from './features/dashboard/screens/navbar/statistics_meal/MealStat.jsx';
 import Costs from './features/dashboard/screens/navbar/total_costs/Costs.jsx';
-import UpdatePreference from './features/dashboard/screens/navbar/preferences-manage/UpdatePreference.jsx';
 
 function App() {
   return (
@@ -23,17 +22,15 @@ function App() {
           <Route path={""} element={<Form />} />
           <Route path={"home"} element={<Form/> } />
           <Route path={"manage_family"} element={<ManageFamily/> } />
-
-          <Route path={"manage_preferences"} element={<ManagePrefrences/> } >
-            <Route path={"update_pref"} element={<UpdatePreference/>} />
-          </Route>
-
+          <Route path={"manage_preferences"} element={<ManagePrefrences/> } />
           <Route path={"meal_stat"} element={<MealStat/> }/>
           <Route path={"cost"} element={<Costs/> }/>
         </Route>
+
         <Route path="/register" element={<Registration />} />
-        
         <Route path='/profile' element={<Profile/>}/>
+        
+
       </Routes>
     </>
   )

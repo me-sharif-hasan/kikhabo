@@ -4,7 +4,7 @@ const Preferences = () => {
 
   return (
     <div>
-     <h1>Your preferences are: </h1> 
+     <h1 className='relative top-10' >Your preferences are: </h1> 
     </div>
   )
 }
