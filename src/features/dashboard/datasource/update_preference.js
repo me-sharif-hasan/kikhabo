@@ -2,13 +2,11 @@ import baseURL from '../../config';
 import axios from 'axios';
 
 class dashboard_datasource  {
-    mealRequest=async(spicyRating,saltRating,dayCount,priceRating,totalMealCount,agesOfTheMembers)=>{
+    setPreference=async(spicyRating,priceRating,saltRating,hasDiabets,isPregnant,specialNotes)=>{
         try{
-           // const token = localStorage.getItem('token');
-            let ages=agesOfTheMembers?.split(',')??[24];
             const response =await axios.post(
                 `${baseURL}/api/v1/meal-planning/update-preference`,
-                { spicyRating,saltRating,dayCount,priceRating,totalMealCount,ages }, {
+                { spicyRating,priceRating,saltRating,hasDiabets,isPregnant,specialNotes}, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
                     }
@@ -16,7 +14,6 @@ class dashboard_datasource  {
             );
             return response.data;
         }catch(error){
-            // throw error.response.data;
             console.log(error)
         }
     }
