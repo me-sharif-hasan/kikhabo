@@ -2,11 +2,11 @@ import baseURL from '../../config';
 import axios from 'axios';
 
 class dashboard_datasource  {
-    setPreference=async(spicyRating,priceRating,saltRating,hasDiabets,isPregnant,specialNotes)=>{
+    setPreference=async(spicyRating,budgetRating,SaltTasteRating,hasDiabetics,isPregnant,specialNotes)=>{
         try{
             const response =await axios.post(
                 `${baseURL}/api/v1/meal-planning/update-preference`,
-                { spicyRating,priceRating,saltRating,hasDiabets,isPregnant,specialNotes}, {
+                { spicyRating,budgetRating,SaltTasteRating,hasDiabetics,isPregnant,specialNotes}, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
                     }
