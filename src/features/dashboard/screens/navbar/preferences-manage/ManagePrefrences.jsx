@@ -56,7 +56,7 @@ const ManagePrefrences = () => {
     openModal(); };
 
   const handleSubmit = (e) => {
-    console.log('Form is eagerlyyyyyyyyyyyyyyyyyyyyyyyyyy submitted');
+    console.log('Form is eagerly submitted');
     e.preventDefault();
         setLoading(true);
         preference.setPreference(spicyRating,budgetRating,saltRating,hasDiabets,isPregnant, specialNotes).then((response) => {
@@ -88,7 +88,7 @@ const ManagePrefrences = () => {
       )}
       </div>
       <div className='flex relative mt-96 ml-96 align-middle '>
-      <button onClick={handleClick} className="relative w-52 text-[18px] rounded-full bg-emerald-700 hover:bg-white py-2 transition-colors duration-300" >{pbutton}</button>
+      <button onClick={handleClick} className="fixed bottom-1 w-52 text-[18px] rounded-full ml-12 bg-green-800 hover:bg-white py-2 transition-colors duration-300" >{pbutton}</button>
       <Modal className="flex flex-crelativeol} justify-center items-center bg-white shadow-md border border-gray-300 rounded-xl p-4 absolute fit-content w-[400px] h-[400px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
       isOpen={modalIsOpen} ariaHideApp={false}
       onRequestClose={closeModal} 
