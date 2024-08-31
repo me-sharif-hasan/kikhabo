@@ -17,4 +17,6 @@ public interface UserDataSource {
     User getUser(String email);
 
     User updateAuthenticatedUser(User user);
+
+    List <User> searchUser(String keyword);
 }
