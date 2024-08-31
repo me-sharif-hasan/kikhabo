@@ -16,6 +16,7 @@ import org.springframework.core.env.Environment;
 public class kikhaboApplication {
 	static Logger logger= LoggerFactory.getLogger("KI KHABO");
 	public static void main(String[] args) {
+		logger.info("Kikhabo Application Started. Login using {}","eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtZS5zaGFyaWYuaGFzYW5AZ21haWwuY29tIiwiaXNzIjoiSldUIFNlcnZpY2UiLCJpYXQiOjE3MjUxMjMzOTgsImV4cCI6MTc1NjY1OTM5OH0.LdfOqbvnMtWKegRNcCe5wy1uDUYiJgsLydrcHHBCq9FUF8CCPE6M54vuFijusKhbx81yO67j3hRvwVkVZNGuhQ");
 		ApplicationContext appContext = new AnnotationConfigApplicationContext();
 		SpringApplication.run(kikhaboApplication.class, args);
 	}
