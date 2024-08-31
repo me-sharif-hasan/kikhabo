@@ -43,9 +43,11 @@ public class UserController {
     }
 
     @GetMapping("search")
-    public ResponseEntity<List<User>> search(@RequestParam String query) throws Exception {
+    public ResponseEntity<SuccessResponse<List<User>>> search(@RequestParam String query) throws Exception {
         List<User> users=userSearchUseCase.execute(query);
-        return new ResponseEntity<>(users, HttpStatus.OK);
+        SuccessResponse <List<User>> successResponse=new SuccessResponse<>();
+        successResponse.setData(users);
+        return new ResponseEntity<>(successResponse, HttpStatus.OK);
     }
 
     @SecurityRequirements
