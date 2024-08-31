@@ -6,6 +6,10 @@ import com.iishanto.kikhabo.infrastructure.services.weather.WeatherService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
+
 @AllArgsConstructor
 @Component
 public class WeatherDataSourceImpl implements WeatherDataSource {
@@ -18,7 +22,13 @@ public class WeatherDataSourceImpl implements WeatherDataSource {
 
     @Override
     public Weather getWeather(String locationName) {
-        return null;
+        try{
+            return weatherService.getWeatherFromPlace(locationName);
+        }catch (Exception e){
+            Weather weather = new Weather();
+            weather.setDate(DateFormat.getDateInstance().format(new Date()));
+            return weather;
+        }
     }
 
     @Override

@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 @AllArgsConstructor
 @Component
 public class MealDataSourceImpl implements MealDataSource {
@@ -39,6 +41,7 @@ public class MealDataSourceImpl implements MealDataSource {
     public void addMealHistory(List<Meal> meals) {
         List<MealHistoryEntity> mealHistoryEntities=new ArrayList<>();
         UserEntity user=userRepository.findByEmail(userDataSource.getAuthenticatedUser().getEmail());
+        UUID groupId=UUID.randomUUID();
         meals.forEach(meal -> {
             MealHistoryEntity mealHistoryEntity=new MealHistoryEntity();
             MealEntity mealEntity=MealEntity.fromDomain(meal);
@@ -46,6 +49,7 @@ public class MealDataSourceImpl implements MealDataSource {
             mealHistoryEntity.setTimestamp(System.currentTimeMillis());
             mealHistoryEntity.setGroceries(meal.getGroceries().stream().map(GroceryEntity::fromDomain).toList());
             mealHistoryEntity.setUser(user);
+            mealHistoryEntity.setGroupId(groupId);
             mealEntity= mealRepository.save(mealEntity);
             meal.setId(mealEntity.getId());
             mealHistoryEntities.add(mealHistoryEntity);
