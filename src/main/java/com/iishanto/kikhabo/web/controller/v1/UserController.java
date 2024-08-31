@@ -4,10 +4,7 @@ import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureExcepti
 import com.iishanto.kikhabo.domain.datasource.WeatherDataSource;
 import com.iishanto.kikhabo.domain.entities.people.Credentials;
 import com.iishanto.kikhabo.domain.entities.people.User;
-import com.iishanto.kikhabo.domain.usercase.user.GetUserUseCase;
-import com.iishanto.kikhabo.domain.usercase.user.UserLoginUseCase;
-import com.iishanto.kikhabo.domain.usercase.user.UserRegistrationUseCase;
-import com.iishanto.kikhabo.domain.usercase.user.UserUpdateUseCase;
+import com.iishanto.kikhabo.domain.usercase.user.*;
 import com.iishanto.kikhabo.domain.usercase.user.command.out.GetUserResponse;
 import com.iishanto.kikhabo.web.dto.user.CredentialsDto;
 import com.iishanto.kikhabo.web.dto.user.LoginResponseDto;
@@ -22,6 +19,9 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 @AllArgsConstructor
 @Tag(name = "User", description = "Create, Read, Update, Delete user")
 @RestController
@@ -32,6 +32,7 @@ public class UserController {
     UserUpdateUseCase userUpdateUseCase;
     WeatherDataSource weatherDataSource;
     GetUserUseCase getUserUseCase;
+    UserSearchUseCase userSearchUseCase;
     Logger logger;
 
     @SecurityRequirements
@@ -39,6 +40,14 @@ public class UserController {
     public ResponseEntity<User> registration(@Valid @RequestBody UserDto user) throws UserRegistrationFailureException {
         logger.info(user.toString());
         return new ResponseEntity<>(userRegistrationUseCase.execute(user.toDomain()), HttpStatus.CREATED);
+    }
+
+    @GetMapping("search")
+    public ResponseEntity<SuccessResponse<List<User>>> search(@RequestParam String query) throws Exception {
+        List<User> users=userSearchUseCase.execute(query);
+        SuccessResponse <List<User>> successResponse=new SuccessResponse<>();
+        successResponse.setData(users);
+        return new ResponseEntity<>(successResponse, HttpStatus.OK);
     }
 
     @SecurityRequirements

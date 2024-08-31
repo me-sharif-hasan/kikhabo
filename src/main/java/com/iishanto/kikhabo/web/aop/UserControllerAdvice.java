@@ -1,5 +1,6 @@
 package com.iishanto.kikhabo.web.aop;
 
+import com.iishanto.kikhabo.common.exception.family.FamilyMemberCreationException;
 import com.iishanto.kikhabo.common.exception.global.GlobalServerException;
 import com.iishanto.kikhabo.common.exception.user.UserLoginFailureException;
 import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureException;
@@ -65,9 +66,18 @@ public class UserControllerAdvice {
         return new ResponseEntity<>(err,HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(FamilyMemberCreationException.class)
+    public ResponseEntity<ErrorResponse> handleFamilyMemberCreationException(FamilyMemberCreationException e){
+        logger.info("FAMILY MEMBER CREATION EXCEPTION {}",e.getLocalizedMessage());
+        ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.FAILURE_CREATING_FAMILY_MEMBER);
+        return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllException(Exception e){
         logger.debug("UNKNOWN EXCEPTION {}",e.getLocalizedMessage());
+        e.printStackTrace();
+        logger.debug("Exception Happened",e);
         ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.UNKNOWN_ERROR);
         return new ResponseEntity<>(err,HttpStatus.SERVICE_UNAVAILABLE);
     }

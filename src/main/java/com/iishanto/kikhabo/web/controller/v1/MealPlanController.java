@@ -2,7 +2,6 @@ package com.iishanto.kikhabo.web.controller.v1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.iishanto.kikhabo.domain.entities.meal.MealHistory;
-import com.iishanto.kikhabo.domain.entities.people.Preference;
 import com.iishanto.kikhabo.domain.entities.text.GroceryPlanningPromptResponse;
 import com.iishanto.kikhabo.domain.usercase.meal.GenerateMealSuggestionUseCase;
 import com.iishanto.kikhabo.domain.usercase.meal.MealHistoryUpdateUserCase;

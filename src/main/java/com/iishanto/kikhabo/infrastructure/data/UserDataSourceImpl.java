@@ -94,4 +94,10 @@ public class UserDataSourceImpl implements UserDataSource {
         userRepository.save(userEntity);
         return userEntity.toDomain();
     }
+
+    @Override
+    public List<User> searchUser(String keyword) {
+        List<UserEntity> users=userRepository.searchUserByKeyword(keyword,10);
+        return users.stream().map(UserEntity::toDomain).toList();
+    }
 }

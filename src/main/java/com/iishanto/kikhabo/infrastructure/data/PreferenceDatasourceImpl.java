@@ -30,10 +30,10 @@ public class PreferenceDatasourceImpl implements PreferenceDataSource {
     }
 
     @Override
-    public Preference getPreference() {
+    public Preference getPreference() throws NullPointerException {
         UserEntity userEntity=getAuthenticatedUserEntity();
         PreferenceEntity preferenceEntity=userEntity.getPreference();
-        return preferenceEntity.toDomain();
+        return new Preference();
     }
 
     private UserEntity getAuthenticatedUserEntity() {
