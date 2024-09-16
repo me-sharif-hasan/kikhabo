@@ -11,10 +11,10 @@ const Dashboard = () => {
       </div>
 
       <div className='mt-14' >
-      <Navbar/>
+        <Navbar/>
       </div>
       
-      <div className='ml-[300px]' >
+      <div className='ml-[300px] relative' >
       <Outlet/>
       </div>
     </div>
