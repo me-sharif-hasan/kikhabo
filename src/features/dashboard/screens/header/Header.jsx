@@ -25,7 +25,7 @@ const Header = () => {
       console.log(error);
       setError(error.message);
   })
-  }, [current_user]);
+  }, [current_user?.id]);
 
   return (
     <div className="flex justify-items-end bg-slate-900 h-14 fixed top-0 w-screen" >      

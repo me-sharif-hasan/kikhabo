@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import family_datasource from '../../../datasource/family_datasource.js';
 import current_user_datasource from '../../../datasource/current_user_datasource.js';
 import Modal from 'react-modal';
+import { FaSearch } from 'react-icons/fa';
 
 const ManageFamily = () => {
   let myFamily= new family_datasource();
@@ -50,11 +51,15 @@ const ManageFamily = () => {
         <FamilyMembers family={family} />
       )}
       </div>
-      <Modal className="flex flex-crelativeol} justify-center items-center bg-white shadow-md border border-gray-300 rounded-xl p-4 absolute fit-content w-[400px] h-[400px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      <Modal className="flex flex-crelativeol justify-center items-center bg-gray-200 shadow-md border border-gray-300 rounded-xl p-4 absolute fit-content w-[400px] h-[400px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
       isOpen={modalIsOpen} ariaHideApp={false}
       onRequestClose={closeModal}  >
         <div className='flex relative flex-col justify-center items-center align-middle backdrop-filter backdrop-blur-sm'>
-        <h1>This is Modal</h1>
+        <h1 className='mb-4 font-bold text-green-900' >Add Your Family Member</h1>
+        <div className="flex items-center py-2 h-12 shadow-md rounded-xl bg-white">
+        <FaSearch className="ml-6 text-green-900"/>  
+        <input  className=" focus:outline-none bg-transparent border-none h-12 w-[300px] rounded-md p-2 ml-1" type="text" placeholder="Type to search.." onChange={(e)=>setname(e.target.value)}/>
+        </div>
         </div>
         
       </Modal>      

@@ -8,7 +8,7 @@ const Navbar = () => {
    
   return (
     <div className='font-comforta' >
-      <div className='sidebar fixed h-screen lg:left-0 w-[300px] overflow-y-auto 
+      <div className='sidebar fixed h-screen lg:left-0 w-72 overflow-y-auto 
       text-center bg-gray-600' >
         <div className='text-white-900 text-xl'>
         </div>

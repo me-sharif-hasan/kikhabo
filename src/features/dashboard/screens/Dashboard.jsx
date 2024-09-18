@@ -14,7 +14,7 @@ const Dashboard = () => {
         <Navbar/>
       </div>
       
-      <div className='ml-[300px] relative' >
+      <div className='ml-72' >
       <Outlet/>
       </div>
     </div>
