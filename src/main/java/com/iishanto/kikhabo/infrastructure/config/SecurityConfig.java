@@ -54,6 +54,7 @@ public class SecurityConfig {
                     req.requestMatchers("/swagger-ui.html").permitAll();
                     req.requestMatchers("/swagger-ui/**").permitAll();
                     req.requestMatchers("/v3/api-docs/**").permitAll();
+                    req.requestMatchers("/admin/**").permitAll();
                     req.anyRequest().authenticated();
                 })
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
