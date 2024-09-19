@@ -25,7 +25,7 @@ const Meals = () => {
     const [showSummary,setShowSummary]=useState(false);
 
   return (
-    <div className={'relative overflow-y-auto bg-gray-200 px-10 py-2 '}>
+    <div className={'overflow-y-scroll bg-gray-200 px-10 py-2 '}>
 
         <div className={` ${!showSummary?'hidden':''} bg-gray-100 z-5 p-2 bg-opacity-80 backdrop-blur rounded-md w-full h-full left-0 top-0`}></div>
         <div className={`${!showSummary?'hidden':''} flex justify-center absolute w-full left-0`}>

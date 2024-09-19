@@ -2,7 +2,7 @@ import baseURL from '../../config.js';
 import axios from 'axios';
 
 class family_datasource  {
-    manageFamily=async()=>{
+    Family=async()=>{
         try{
             const response =await axios.get(
                 `${baseURL}/api/v1/family`,{ headers: {Authorization: `Bearer ${localStorage.getItem('token')}`} }
