@@ -25,9 +25,9 @@ const Meals = () => {
     const [showSummary,setShowSummary]=useState(false);
 
   return (
-    <div className={'bg-gray-200 px-10 py-2'}>
+    <div className={'overflow-y-scroll bg-gray-200 px-10 py-2 '}>
 
-        <div className={`fixed ${!showSummary?'hidden':''} bg-gray-100 z-5 p-2 bg-opacity-80 backdrop-blur rounded-md w-full h-full left-0 top-0`}></div>
+        <div className={` ${!showSummary?'hidden':''} bg-gray-100 z-5 p-2 bg-opacity-80 backdrop-blur rounded-md w-full h-full left-0 top-0`}></div>
         <div className={`${!showSummary?'hidden':''} flex justify-center absolute w-full left-0`}>
             <div ref={listSummary} className={`bg-blue-400 text-white z-10 font-sans p-2 mt-2 rounded-md`}>
                 <h1 className={'text-xl font-bold'}>Bazar List</h1>

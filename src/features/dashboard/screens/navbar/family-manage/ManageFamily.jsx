@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import family_datasource from '../../../datasource/family_datasource.js';
+import search_family_datasource from '../../../datasource/search_family_datasource.js';
 import current_user_datasource from '../../../datasource/current_user_datasource.js';
 import Modal from 'react-modal';
+import { FaSearch } from 'react-icons/fa';
+import FamilyMembers from './FamilyMembers.jsx';
 
 const ManageFamily = () => {
-  let myFamily= new family_datasource();
+  let myFamily= new search_family_datasource();
   
 
   const [error, setError] = useState('');
@@ -13,22 +15,35 @@ const ManageFamily = () => {
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [loadData, setLoadData] = useState(false);
 
-  const [email, setEmail]=useState('');
-  const [name,setname]=useState('');
+  
+  const [input,setInput]=useState('');
+
+  const [debouncedInput, setDebouncedInput] = useState(input); // New state
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedInput(input);
+    }, 400); // 300ms delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [input]);
 
   useEffect(()=>{
-    myFamily.manageFamily().then((response)=>{
-      console.log(response);
+  
+   if(debouncedInput){
+    myFamily.searchFamily(input).then((response)=>{
       if(response.status==='success'){
         setFamily(response.data);
       }
     }).catch((error)=>{
       console.log(error);  
       setError(error.message);
-    })
-  },[loadData]);
+    });
+   }
+  },[debouncedInput]);
 
 
 
@@ -50,11 +65,45 @@ const ManageFamily = () => {
         <FamilyMembers family={family} />
       )}
       </div>
-      <Modal className="flex flex-crelativeol} justify-center items-center bg-white shadow-md border border-gray-300 rounded-xl p-4 absolute fit-content w-[400px] h-[400px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      <Modal className="flex flex-crelativeol justify-center items-center bg-gray-200 shadow-md border border-gray-300 rounded-xl p-4 absolute fit-content w-[400px] h-[400px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
       isOpen={modalIsOpen} ariaHideApp={false}
-      onRequestClose={closeModal}  >
-        <div className='flex relative flex-col justify-center items-center align-middle backdrop-filter backdrop-blur-sm'>
-        <h1>This is Modal</h1>
+      onRequestClose={closeModal} >
+        <div className='flex fixed top-5 flex-col justify-center items-center align-middle backdrop-filter backdrop-blur-sm'>
+        <h1 className='mb-4 font-bold text-lg text-green-900' >Add Your Family Member</h1>
+        <div className="flex items-center py-2 h-12 shadow-md rounded-xl bg-white">
+        <FaSearch className="ml-6 text-green-900"/>  
+        <input  className=" focus:outline-none bg-transparent border-none h-12 w-[280px] rounded-md p-2 ml-1" type="text" placeholder="Type to search.." value={input} onChange={(e)=>setInput(e.target.value)}/>
+        </div>
+        <div className="flex flex-col rounded-md shadow-md mt-4 overflow-y-scroll max-h-60 w-[320px] bg-white" id='searchresults'>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        <div>Samantha</div>
+        </div>
+
         </div>
         
       </Modal>      
