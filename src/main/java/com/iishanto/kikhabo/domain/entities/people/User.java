@@ -40,14 +40,18 @@ public class User {
     }
 
     public String getAge() throws Exception {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM, yyyy");
-        LocalDate birthDate = LocalDate.parse(dateOfBirth, formatter);
-        LocalDate currentDate = LocalDate.now();
-        if (birthDate.isAfter(currentDate)) {
-            throw new Exception("Date of birth is after current date");
+        try{
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM, yyyy");
+            LocalDate birthDate = LocalDate.parse(dateOfBirth, formatter);
+            LocalDate currentDate = LocalDate.now();
+            if (birthDate.isAfter(currentDate)) {
+                throw new Exception("Date of birth is after current date");
+            }
+            Period age = Period.between(birthDate, currentDate);
+            return String.valueOf(age.getYears());
+        }catch (Exception e){
+            return "20";
         }
-        Period age = Period.between(birthDate, currentDate);
-        return String.valueOf(age.getYears());
     }
 
 
