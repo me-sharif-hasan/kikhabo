@@ -1,6 +1,7 @@
 package com.iishanto.kikhabo.infrastructure.repositories.ai.prompt.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iishanto.kikhabo.domain.datasource.FamilyDataSource;
 import com.iishanto.kikhabo.domain.datasource.PreferenceDataSource;
 import com.iishanto.kikhabo.domain.datasource.UserDataSource;
 import com.iishanto.kikhabo.domain.datasource.WeatherDataSource;
@@ -15,8 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @Component
@@ -24,6 +27,7 @@ public class GeminiPromptImpl implements PromptProvider {
     ObjectMapper objectMapper;
     Logger logger;
     UserDataSource userDataSource;
+    FamilyDataSource familyDataSource;
     HealthServices healthServices;
     WeatherDataSource weatherDataSource;
     PreferenceDataSource preferenceDataSource;
@@ -50,6 +54,12 @@ public class GeminiPromptImpl implements PromptProvider {
                             },
                             {
                                 "text": "Always include the common food for the country. for example, Bangladeshi people almost always take rice with there meals. So, use your commonsense to add something like that."
+                            },
+                            {
+                                "text": "Always considers the preferences. Specially if anyone have diseases and if there is a kid. Always try to give healthiest food possible. Here is the preferences of the family members: %s"
+                            },
+                            {
+                                "text": "Make all responses in bengali"
                             }
                         ]
                     }],
@@ -60,16 +70,20 @@ public class GeminiPromptImpl implements PromptProvider {
                 """.formatted(
                         getUserPrompt(prompt,user),
                         StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", "),
-                        weatherDataSource.getWeather(user.getCountry())
+                        weatherDataSource.getWeather(user.getCountry()),
+                        getFamilyPreferences()
         );
         logger.warn(promptString);
         return promptString;
     }
     private String getUserPrompt(Prompt prompt,User user) {
-        Preference preference=new Preference();
+        Preference preference;
         try {
-            preferenceDataSource.getPreference();
+            logger.info("loading saved preference");
+            preference=preferenceDataSource.getPreference();
+            logger.info("loaded saved preference");
         }catch (Exception e){
+            logger.info("setting default preference");
             preference = new Preference();
             preference.setBudgetRating(5);
             preference.setSaltTasteRating(3);
@@ -87,6 +101,8 @@ public class GeminiPromptImpl implements PromptProvider {
                 Budget rating out of 10: %f,
                 Current season: its %s of %s, so whatever season this is,
                 Country of origin: %s
+                
+                Also consider preferences of the family members
                 
                 Always remember to provide meals according to religion. Ex. Muslims do not eat pork, Hindus do not eat cows. For your information, religion of the user is %s.
                 
@@ -122,7 +138,7 @@ public class GeminiPromptImpl implements PromptProvider {
                         System.currentTimeMillis(),
                         getMealCount(preference,prompt),
                         getAgesOfTheMembers(preference,prompt),
-                        healthServices.getBMI(user),
+                        getCommaSeperatedBmiList(),
                         getSpicyRating(preference,prompt) /*Spicy rating*/,
                         getSaltRating(preference,prompt) /*Salt rating of the meal*/,
                         getPriceRating(preference,prompt) /*Budget rating*/,
@@ -135,15 +151,59 @@ public class GeminiPromptImpl implements PromptProvider {
                 );
     }
 
+    private String getCommaSeperatedBmiList(){
+        List <User> members=familyDataSource.getFamilyMembersOfCurrentUser();
+        List <Double> bmiList=members.stream().map(member->member.getBmi(healthServices)).toList();
+        return StringUtils.join(bmiList, ", ");
+    }
     private int getMealCount(Preference preference,Prompt prompt) {
-        return prompt.getMealPreferenceData().getTotalMealCount()==null?1:prompt.getMealPreferenceData().getTotalMealCount();
+        List <User> familyMembers=familyDataSource.getFamilyMembersOfCurrentUser();
+        logger.info("total family members: {}", familyMembers.size());
+        if(prompt.getMealPreferenceData().getTotalMealCount()==null){
+            Float numDays=prompt.getMealPreferenceData().getDayCount();
+            Integer mealPerDay=prompt.getMealPreferenceData().getMealPerDay();
+            if(numDays!=null&&mealPerDay==null){
+                return (int) (3*familyMembers.size()*numDays);
+            }
+            if(numDays==null&&mealPerDay!=null){
+                return mealPerDay*familyMembers.size();
+            }
+            if(numDays == null){
+                return 3*familyMembers.size();
+            }
+            return 3;
+        }else{
+            return prompt.getMealPreferenceData().getTotalMealCount();
+        }
     }
     private String getAgesOfTheMembers(Preference preference,Prompt prompt) {
-        //todo: fetch age list from the family members
-        return StringUtils.join(prompt.getMealPreferenceData().getAgesOfTheMembers(),',');
+        if(prompt.getMealPreferenceData().getAgesOfTheMembers()!=null&& !prompt.getMealPreferenceData().getAgesOfTheMembers().isEmpty()){
+            logger.info("getting age list from manual preference");
+            return StringUtils.join(prompt.getMealPreferenceData().getAgesOfTheMembers(),',');
+        }else{
+            logger.info("getting age list from automatic preference");
+            List <User> familyMembers=familyDataSource.getFamilyMembersOfCurrentUser();
+            List <String> ages=new ArrayList<>();
+            for(User user:familyMembers){
+                try{
+                    ages.add(user.getAge());
+                }catch (Exception e){
+                    ages.add("20");
+                }
+            }
+            return StringUtils.join(ages,",");
+        }
     }
     private float getSpicyRating(Preference preference, Prompt prompt) {
         return prompt.getMealPreferenceData().getSpicyRating()==null?preference.getSpicyRating():prompt.getMealPreferenceData().getSpicyRating();
+    }
+    private String getFamilyPreferences(){
+        List <User> members=familyDataSource.getFamilyMembersOfCurrentUser();
+        List <Preference> preferences=new ArrayList<>();
+        for(User user:members){
+            preferences.add(user.getPreference());
+        }
+        return StringUtils.join(preferences,",");
     }
     private float getSaltRating(Preference preference, Prompt prompt) {
         return prompt.getMealPreferenceData().getSaltRating()==null?preference.getSaltTasteRating():prompt.getMealPreferenceData().getSaltRating();
@@ -151,7 +211,6 @@ public class GeminiPromptImpl implements PromptProvider {
     private float getPriceRating(Preference preference, Prompt prompt) {
         return prompt.getMealPreferenceData().getPriceRating()==null?preference.getBudgetRating():prompt.getMealPreferenceData().getPriceRating();
     }
-
     private String getMonthName(int index){
         String []months=new String[]{"January","February","March","April","May","June","July","August","September","October","November","December"};
         return months[index];

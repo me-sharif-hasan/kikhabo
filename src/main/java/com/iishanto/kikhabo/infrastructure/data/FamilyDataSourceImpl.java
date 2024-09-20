@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,7 +52,10 @@ public class FamilyDataSourceImpl implements FamilyDataSource {
     public void deleteFamilyMembers(List<Long> familyMemberIds) {
         String email=userDataSource.getAuthUserEmail();
         UserEntity user=userRepository.findByEmail(email);
-        List <UserEntity> members=user.getFamilyMembers().stream().filter(userEntity -> !familyMemberIds.contains(userEntity.getId())).toList();
+        List <UserEntity> members=new ArrayList<>(user.getFamilyMembers().stream().filter(userEntity -> !familyMemberIds.contains(userEntity.getId())).toList());
+        for (int i = 0; i < members.size(); i++) {
+            System.out.println(members.get(i).getId());
+        }
         user.setFamilyMembers(members);
         userRepository.save(user);
     }
