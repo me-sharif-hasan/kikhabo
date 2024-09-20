@@ -33,7 +33,7 @@ public class PreferenceDatasourceImpl implements PreferenceDataSource {
     public Preference getPreference() throws NullPointerException {
         UserEntity userEntity=getAuthenticatedUserEntity();
         PreferenceEntity preferenceEntity=userEntity.getPreference();
-        return new Preference();
+        return preferenceEntity.toDomain();
     }
 
     private UserEntity getAuthenticatedUserEntity() {
