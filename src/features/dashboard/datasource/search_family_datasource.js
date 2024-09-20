@@ -5,8 +5,12 @@ class search_family_datasource  {
     searchFamily=async(query)=>{
         try{
             const response =await axios.get(
-                `${baseURL}/api/v1/user/search`,{query}, { headers: {Authorization: `Bearer ${localStorage.getItem('token')}`} }
+                `${baseURL}/api/v1/user/search`,{ 
+                    headers: {Authorization: `Bearer ${localStorage.getItem('token')}`},
+                    params:{query:query}
+            }
             );
+            
             return response.data;
         }catch(error){
             console.log(error);
