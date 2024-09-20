@@ -48,6 +48,7 @@ const ManageFamily = () => {
    }
   },[debouncedInput]);
 
+  const [refresh,setRefresh]=useState(false);
   useEffect(() => {
     myFamily.Family().then((response) => {
       if (response.status === 'success') {
@@ -61,7 +62,7 @@ const ManageFamily = () => {
       setError(error.message);
     });
 
-  }, [family.members]);
+  }, [family.members,refresh]);
   
 
 
@@ -77,8 +78,8 @@ const ManageFamily = () => {
     console.log('Add button is clicked');
     addMember.addFamilyMember([id]).then((response) => {
       if (response.status === 'success') {
-        console.log(response);
-        setButton('Added');
+        setRefresh(!refresh);
+        closeModal();
       } else {
         setError(response.message);
       }
@@ -89,16 +90,17 @@ const ManageFamily = () => {
   };
 
   return (
-    <div>
-      <div className='h-96 relative flex'>
-      {family?.members?.length > 0 ? (
-       <FamilyMembers family={family} />
-       ) : (
-       <NoMember/>
-       )
+    <div className={'p-2'}>
+      {family?.data?.members?.length > 0 ? (
+          <FamilyMembers family={family?.data?.members} onClose={
+            () => {
+                setRefresh(!refresh);
+                }
+          } />
+      ) : (
+          <NoMember/>
+      )
       }
-
-      </div>
       <Modal className="flex flex-crelativeol justify-center items-center bg-gray-200 shadow-md border border-gray-300 rounded-xl p-4 absolute fit-content w-[400px] h-[400px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
       isOpen={modalIsOpen} ariaHideApp={false}
       onRequestClose={closeModal} >

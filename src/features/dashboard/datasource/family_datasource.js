@@ -12,5 +12,15 @@ class family_datasource  {
             console.log(error)
         }
     }
+
+    deleteFamilyMember=async(id)=> {
+        try {
+            const response = await axios.delete(
+                `${baseURL}/api/v1/family/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+            );
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
 export default family_datasource;
