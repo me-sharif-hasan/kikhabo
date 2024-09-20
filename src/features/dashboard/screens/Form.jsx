@@ -16,12 +16,16 @@ const Form = () => {
         e.preventDefault();
         let spicyRating = e.target[0].value;
         let saltRating = e.target[1].value;
-        let dayCount = e.target[2].value;
+        let dayCount = parseInt(e.target[2].value);
         let priceRating = e.target[3].value;
-        let totalMealCount = e.target[4].value;
+        let mealPerDay=parseInt(e.target[4].value);
+        let totalMealCount = '';
+        if(dayCount>0 && mealPerDay>0){
+            totalMealCount=dayCount*mealPerDay;
+        }
         let agesOfTheMembers = e.target[5].value;
         setLoading(true);
-        meal.mealRequest(spicyRating, saltRating, dayCount, priceRating, totalMealCount, agesOfTheMembers).then((response) => {
+        meal.mealRequest(spicyRating, saltRating, dayCount, priceRating, totalMealCount,mealPerDay, agesOfTheMembers).then((response) => {
             console.log(response);
             if (response.status === 'success') {
                 setLoading(false);

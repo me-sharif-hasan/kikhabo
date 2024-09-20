@@ -5,7 +5,7 @@ import Header from '../screens/header/Header.jsx'
 
 const Dashboard = () => {
   return (
-     <div className="bg-dashImage fixed w-full h-[100vh]  bg-no-repeat bg-cover">
+     <div className="bg-dashImage fixed overflow-y-auto w-full h-[100vh]  bg-no-repeat bg-cover">
       <div className='font-[Poppins]' >
         <Header/>
       </div>
