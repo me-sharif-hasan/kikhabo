@@ -27,13 +27,15 @@ public class MealPreferenceDto {
     @Max(10)
     @Min(0)
     private Float priceRating;
-    @NotNull
     @Max(9)
     @Min(1)
     private Integer totalMealCount;
+    @Max(3)
+    @Min(1)
+    private Integer mealPerDay;
     private List<Float> agesOfTheMembers;
 
     public MealPreferenceData toDomain(){
-        return new MealPreferenceData(spicyRating,saltRating,dayCount,priceRating,totalMealCount,agesOfTheMembers);
+        return new MealPreferenceData(spicyRating,saltRating,dayCount,priceRating,totalMealCount,agesOfTheMembers,mealPerDay);
     }
 }

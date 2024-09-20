@@ -19,4 +19,5 @@ public class MealPreferenceData extends SchemaEntity {
     Float priceRating;
     Integer totalMealCount;
     List<Float> agesOfTheMembers;
+    Integer MealPerDay;
 }
