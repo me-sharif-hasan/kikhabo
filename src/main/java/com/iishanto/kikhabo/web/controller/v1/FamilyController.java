@@ -9,11 +9,16 @@ import com.iishanto.kikhabo.domain.usercase.family.command.out.GetFamilyMembersD
 import com.iishanto.kikhabo.web.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
+import org.hibernate.sql.Delete;
 import org.hibernate.type.descriptor.jdbc.JdbcTypeFamilyInformation;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 @AllArgsConstructor
 @Tag(name = "Family", description = "Family specific operations here.")
@@ -38,8 +43,9 @@ public class FamilyController {
         return new ResponseEntity<>(successResponse, HttpStatus.OK);
     }
 
-    @DeleteMapping
-    public ResponseEntity<SuccessResponse<String>> deleteFamilyMember(@RequestParam DeleteFamilyMembersCommand deleteFamilyMembersCommand) throws Exception {
+    @DeleteMapping("{id}")
+    public ResponseEntity<SuccessResponse<String>> deleteFamilyMember(@PathVariable Long id) throws Exception {
+        DeleteFamilyMembersCommand deleteFamilyMembersCommand=new DeleteFamilyMembersCommand(Collections.singletonList(id));
         deleteFamilyMemberUseCase.execute(deleteFamilyMembersCommand);
         SuccessResponse <String> successResponse=new SuccessResponse<>();
         successResponse.setMessage("Success");
