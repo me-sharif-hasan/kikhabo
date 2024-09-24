@@ -27,10 +27,8 @@ const Form = () => {
         setLoading(true);
         meal.mealRequest(spicyRating, saltRating, dayCount, priceRating, totalMealCount,mealPerDay, agesOfTheMembers).then((response) => {
             console.log(response);
-            if (response.status === 'success') {
-                setLoading(false);
-                navigate('/dashboard/meals', {state:response});
-            }
+            setLoading(false);
+            navigate('/dashboard/meals', {state:response});
         }).catch((error) => {
             console.log(error);
             setError(error.message);
