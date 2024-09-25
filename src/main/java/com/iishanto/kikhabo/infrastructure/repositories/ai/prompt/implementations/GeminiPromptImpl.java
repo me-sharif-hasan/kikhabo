@@ -57,9 +57,6 @@ public class GeminiPromptImpl implements PromptProvider {
                             },
                             {
                                 "text": "Always considers the preferences. Specially if anyone have diseases and if there is a kid. Always try to give healthiest food possible. Here is the preferences of the family members: %s"
-                            },
-                            {
-                                "text": "Make all responses in bengali"
                             }
                         ]
                     }],
