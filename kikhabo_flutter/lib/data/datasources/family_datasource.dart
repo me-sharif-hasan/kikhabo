@@ -14,17 +14,22 @@ class FamilyDataSource {
     try {
       final response = await _dio.get(ApiConstants.family);
       
-      // Based on analysis, it returns a DTO wrapping the list
-      // Or sometimes directly the list. Let's assume DTO based on `GetFamilyMembersDto`
-      // If the API returns direct list, we can adjust.
-      // Checking `GetFamilyMembersDto` definition: it has `members` list.
-      // If API returns { "members": [...] }
-      if (response.data is Map<String, dynamic> && response.data.containsKey('members')) {
-        return GetFamilyMembersDto.fromJson(response.data).members;
-      } 
+      // API returns { "status": "success", "data": { "members": [...] } }
+      if (response.data is Map<String, dynamic>) {
+        final data = response.data['data'];
+        
+        // Check if data has 'members' key
+        if (data is Map<String, dynamic> && data.containsKey('members')) {
+          return GetFamilyMembersDto.fromJson(data).members;
+        }
+        // Fallback if data is direct list
+        else if (data is List) {
+          return data.map((e) => User.fromJson(e as Map<String, dynamic>)).toList();
+        }
+      }
       // Fallback if API returns direct list
       else if (response.data is List) {
-        return (response.data as List).map((e) => User.fromJson(e)).toList();
+        return (response.data as List).map((e) => User.fromJson(e as Map<String, dynamic>)).toList();
       }
       
       return [];

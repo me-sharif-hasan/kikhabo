@@ -3,13 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/glass_styles.dart';
-import '../../data/models/user.dart';
+import '../../domain/providers/auth_provider.dart';
+import '../../domain/providers/family_provider.dart';
 import 'glass_button.dart';
 import 'glass_text_field.dart';
-
-// Mock Provider for Search Results
-final searchResultsProvider = StateProvider<List<User>>((ref) => []);
-final isSearchingProvider = StateProvider<bool>((ref) => false);
 
 class AddFamilyMemberModal extends ConsumerStatefulWidget {
   const AddFamilyMemberModal({super.key});
@@ -21,47 +18,41 @@ class AddFamilyMemberModal extends ConsumerStatefulWidget {
 class _AddFamilyMemberModalState extends ConsumerState<AddFamilyMemberModal> {
   final TextEditingController _searchController = TextEditingController();
 
-  void _performSearch(String query) async {
+  void _performSearch(String query) {
     if (query.isEmpty) {
-      ref.read(searchResultsProvider.notifier).state = [];
+      ref.read(userSearchProvider.notifier).clearSearch();
       return;
     }
 
-    ref.read(isSearchingProvider.notifier).state = true;
-    
-    // Simulate API delay
-    await Future.delayed(const Duration(milliseconds: 800));
+    // Get current user ID to filter from results
+    final currentUser = ref.read(authProvider).user;
+    ref.read(userSearchProvider.notifier).searchUsers(
+      query,
+      currentUserId: currentUser?.id,
+    );
+  }
 
-    // Mock Results
-    if (query.toLowerCase() == 'found') {
-        ref.read(searchResultsProvider.notifier).state = [
-          const User(
-            id: 201,
-            email: 'found.user@example.com',
-            firstName: 'Found',
-            lastName: 'User',
-            gender: 'Male',
-            country: 'UK',
-            dateOfBirth: '1995-05-05',
-            religion: 'None',
-            weightInKg: 70,
-            heightInFt: 5.8,
-          )
-        ];
-    } else {
-       ref.read(searchResultsProvider.notifier).state = [];
-    }
-    
-    ref.read(isSearchingProvider.notifier).state = false;
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final searchResults = ref.watch(searchResultsProvider);
-    final isSearching = ref.watch(isSearchingProvider);
+    final searchState = ref.watch(userSearchProvider);
+    final searchResults = searchState.results;
+    final isSearching = searchState.isLoading;
+    final familyState = ref.watch(familyProvider);
+    final familyMemberIds = familyState.familyMembers.map((m) => m.id).toSet();
+
+    // Filter out users already in family
+    final filteredResults = searchResults
+        .where((user) => !familyMemberIds.contains(user.id))
+        .toList();
 
     return Scaffold(
-      backgroundColor: Colors.transparent, // Fully transparent background
+      backgroundColor: Colors.transparent,
       body: GlassStyles.glassContainer(
         blur: 25,
         borderRadius: BorderRadius.zero,
@@ -91,35 +82,48 @@ class _AddFamilyMemberModalState extends ConsumerState<AddFamilyMemberModal> {
                 hintText: 'Search by email or name...',
                 labelText: 'User Search',
                 onChanged: (value) {
-                    // Simple debounce simulation
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                        if (value == _searchController.text) {
-                            _performSearch(value);
-                        }
-                    });
+                  // Simple debounce simulation
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    if (value == _searchController.text) {
+                      _performSearch(value);
+                    }
+                  });
                 },
                 prefixIcon: Icons.search,
               ),
             ),
+            if (searchState.error != null)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  searchState.error!,
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+                ),
+              ),
             if (isSearching)
-               const Padding(
-                 padding: EdgeInsets.only(top: 40),
-                 child: CircularProgressIndicator(color: AppColors.accent),
-               ),
+              const Padding(
+                padding: EdgeInsets.only(top: 40),
+                child: CircularProgressIndicator(color: AppColors.accent),
+              ),
             
-            if (!isSearching && searchResults.isEmpty && _searchController.text.isNotEmpty)
-               Padding(
-                 padding: const EdgeInsets.only(top: 40),
-                 child: Text('No users found. Try searching "found"', style: AppTextStyles.bodyMedium),
-               ),
+            if (!isSearching && filteredResults.isEmpty && _searchController.text.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 40),
+                child: Text(
+                  searchResults.isEmpty 
+                    ? 'No users found' 
+                    : 'All found users are already in your family',
+                  style: AppTextStyles.bodyMedium
+                ),
+              ),
 
-            if (!isSearching && searchResults.isNotEmpty)
+            if (!isSearching && filteredResults.isNotEmpty)
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: searchResults.length,
+                  itemCount: filteredResults.length,
                   itemBuilder: (context, index) {
-                    final user = searchResults[index];
+                    final user = filteredResults[index];
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
@@ -137,21 +141,54 @@ class _AddFamilyMemberModalState extends ConsumerState<AddFamilyMemberModal> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('${user.firstName} ${user.lastName}', style: AppTextStyles.titleMedium),
+                                Text(
+                                  '${user.firstName} ${user.lastName}', 
+                                  style: AppTextStyles.titleMedium
+                                ),
                                 Text(user.email, style: AppTextStyles.bodySmall),
                               ],
                             ),
                           ),
-                          GlassButton(
-                            text: 'Add',
-                            width: 80,
-                            height: 36,
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${user.firstName} to family!')));
-                              Navigator.pop(context);
+                          InkWell(
+                            onTap: () async {
+                              final success = await ref
+                                  .read(familyProvider.notifier)
+                                  .addFamilyMember(user.id!);
+                              
+                              if (context.mounted) {
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Added ${user.firstName} to family!'))
+                                  );
+                                  Navigator.pop(context);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Failed to add family member'))
+                                  );
+                                }
+                              }
                             },
-                            gradient: AppColors.bgGradient2,
-                          )
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                gradient: AppColors.bgGradient2,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     );

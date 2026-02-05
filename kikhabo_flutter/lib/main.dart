@@ -94,6 +94,10 @@ class _KikhaboAppState extends ConsumerState<KikhaboApp> {
               builder: (context, state) => const DashboardScreen(child: MealsScreen()),
             ),
             GoRoute(
+              path: 'family',
+              builder: (context, state) => const DashboardScreen(child: ManageFamilyScreen()),
+            ),
+            GoRoute(
               path: 'manage_family',
               builder: (context, state) => const DashboardScreen(child: ManageFamilyScreen()),
             ),

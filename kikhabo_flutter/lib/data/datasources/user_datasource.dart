@@ -38,11 +38,17 @@ class UserDataSource {
         queryParameters: {'query': query},
       );
       
-      // Assuming response is List<User> or ApiResponse<List<User>>
-      // Based on analysis, it likely returns a list of users directly
-      if (response.data is List) {
+      // API returns { "status": "success", "data": [...] }
+      if (response.data is Map<String, dynamic>) {
+        final data = response.data['data'];
+        if (data is List) {
+          return data.map((e) => User.fromJson(e as Map<String, dynamic>)).toList();
+        }
+      }
+      // Fallback if API returns direct list
+      else if (response.data is List) {
         return (response.data as List)
-            .map((e) => User.fromJson(e))
+            .map((e) => User.fromJson(e as Map<String, dynamic>))
             .toList();
       }
       return [];
