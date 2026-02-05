@@ -1,0 +1,105 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches:
+      - main
+      - deploy/do
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Create credentials file
+        run: |
+          mkdir -p src/main/resources/credentials
+          echo "${{ secrets.BACKEND_GOOGLE_SERVICES_BASE64 }}" | base64 -d > src/main/resources/credentials/kikhabo-service-account.json
+        continue-on-error: false
+
+      - name: Validate credentials file
+        run: |
+          jq . src/main/resources/credentials/kikhabo-service-account.json > /dev/null || { echo "Invalid JSON in credentials"; exit 1; }
+
+      - name: Create application-prod.properties
+        run: |
+          mkdir -p src/main/resources
+          cat <<EOT > src/main/resources/application-prod.properties
+          openweather.apikey=${{ secrets.OPENWEATHER_APIKEY }}
+          google.gemini.apikey=${{ secrets.GEMINI_KEY }}
+          spring.datasource.url=${{ secrets.DB_URL }}
+          spring.datasource.username=${{ secrets.DB_USER }}
+          spring.datasource.password=${{ secrets.DB_PASS }}
+          jwt.secret=${{ secrets.JWT_SECRET }}
+          EOT
+
+          cat src/main/resources/application-prod.properties
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
+
+      - name: Build with Maven
+        run: ./mvnw clean package -DskipTests -Dspring.profiles.active=prod
+
+      - name: Validate SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DO_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keygen -y -P "" -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub || { echo "Invalid SSH key format"; exit 1; }
+        env:
+          DO_PRIVATE_KEY: ${{ secrets.DO_PRIVATE_KEY }}
+
+      - name: Set up SSH known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H kikhabo.iishanto.com >> ~/.ssh/known_hosts 2>/dev/null || { echo "Failed to scan host key"; exit 1; }
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        run: |
+          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@kikhabo.iishanto.com "echo SSH connection successful" || { echo "SSH connection failed"; exit 1; }
+        env:
+          DO_PRIVATE_KEY: ${{ secrets.DO_PRIVATE_KEY }}
+
+      - name: Upload JAR to VM
+        timeout-minutes: 5
+        run: |
+          JAR_FILE=$(ls target/*.jar | head -1)
+          if [ -z "$JAR_FILE" ]; then echo "No JAR file found in target/"; exit 1; fi
+          scp -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa "${JAR_FILE}" root@kikhabo.iishanto.com:/opt/kikhabo/kikhabo.jar
+        continue-on-error: false
+
+      - name: Deploy and start service on VM
+        timeout-minutes: 5
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@kikhabo.iishanto.com << 'EOF'
+            # Stop existing service
+            systemctl stop kikhabo.service || true
+            systemctl start kikhabo.service
+          EOF
+        env:
+          OPENWEATHER_APIKEY: ${{ secrets.OPENWEATHER_APIKEY }}
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
