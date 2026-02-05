@@ -40,7 +40,7 @@ jobs:
           spring.datasource.url=${{ secrets.DB_URL }}
           spring.datasource.username=${{ secrets.DB_USER }}
           spring.datasource.password=${{ secrets.DB_PASS }}
-          jwt.secret=${{ secrets.JWT_SECRET }}
+          kikhabo.security.jwt-secret=${{ secrets.JWT_SECRET }}
           EOT
 
           cat src/main/resources/application-prod.properties
