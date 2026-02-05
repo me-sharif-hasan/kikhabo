@@ -84,7 +84,7 @@ jobs:
         run: |
           JAR_FILE=$(ls target/*.jar | head -1)
           if [ -z "$JAR_FILE" ]; then echo "No JAR file found in target/"; exit 1; fi
-          scp -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa "${JAR_FILE}" root@kikhabo.iishanto.com:/opt/kikhabo/kikhabo.jar
+          scp -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa "${JAR_FILE}" root@kikhabo.iishanto.com:/opt/kikhabo.jar
         continue-on-error: false
 
       - name: Deploy and start service on VM
