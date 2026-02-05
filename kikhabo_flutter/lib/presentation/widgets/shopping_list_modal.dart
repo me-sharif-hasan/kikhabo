@@ -1,0 +1,146 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/glass_styles.dart';
+import '../../data/models/meal.dart';
+import 'glass_button.dart';
+
+class ShoppingListModal extends StatefulWidget {
+  final List<Meal> meals;
+
+  const ShoppingListModal({super.key, required this.meals});
+
+  @override
+  State<ShoppingListModal> createState() => _ShoppingListModalState();
+}
+
+class _ShoppingListModalState extends State<ShoppingListModal> {
+  final GlobalKey _globalKey = GlobalKey();
+  bool _isSaving = false;
+
+  Map<String, int> get _aggregatedGroceries {
+    final Map<String, int> groceries = {};
+    for (var meal in widget.meals) {
+      for (var grocery in (meal.groceries ?? [])) {
+        final amount = int.tryParse(grocery.amountInGm.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        groceries[grocery.name] = (groceries[grocery.name] ?? 0) + amount;
+      }
+    }
+    return groceries;
+  }
+
+  Future<void> _saveShoppingList() async {
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      RenderRepaintBoundary boundary =
+          _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      
+      if (byteData != null) {
+        final result = await ImageGallerySaver.saveImage(
+          byteData.buffer.asUint8List(),
+          quality: 100,
+          name: "kikhabo_shopping_list_${DateTime.now().millisecondsSinceEpoch}",
+        );
+        
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['isSuccess'] == true ? 'Saved to Gallery!' : 'Failed to save'),
+              backgroundColor: result['isSuccess'] == true ? AppColors.primary : AppColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final groceries = _aggregatedGroceries;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: GlassStyles.glassContainer(
+          blur: 20,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                   Text('Shopping List', style: AppTextStyles.headlineSmall),
+                   IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close, color: Colors.white))
+                ],
+              ),
+              const Divider(color: Colors.white24),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: RepaintBoundary(
+                    key: _globalKey,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface, // Solid-ish background for better PNG readability
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.glassBorder),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(child: Text('Kikhabo Meal Plan', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryLight))),
+                          const SizedBox(height: 16),
+                          ...groceries.entries.map((e) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('• ${e.key}', style: AppTextStyles.bodyLarge.copyWith(color: Colors.white)),
+                                Text('${e.value}g', style: AppTextStyles.bodyLarge.copyWith(color: AppColors.accentLight)),
+                              ],
+                            ),
+                          )),
+                          const SizedBox(height: 16),
+                          const Divider(color: Colors.white24),
+                          Center(child: Text('Generated by Kikhabo AI', style: AppTextStyles.labelSmall)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              GlassButton(
+                text: 'Download Image 📥',
+                isLoading: _isSaving,
+                onPressed: _saveShoppingList,
+                gradient: LinearGradient(colors: [AppColors.accent, AppColors.accentDark]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

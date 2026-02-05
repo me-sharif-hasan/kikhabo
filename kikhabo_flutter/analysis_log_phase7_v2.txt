@@ -1,0 +1,69 @@
+Analyzing kikhabo_flutter...                                    
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\app_colors.dart:15:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\app_colors.dart:16:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\app_colors.dart:17:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\app_colors.dart:18:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\app_theme.dart:30:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\app_theme.dart:33:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\app_theme.dart:37:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\glass_styles.dart:16:29 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\glass_styles.dart:25:28 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\glass_styles.dart:28:36 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\data\datasources\dio_client.dart:53:29 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\auth\login_screen.dart:72:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\auth\login_screen.dart:75:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\auth\login_screen.dart:100:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\auth\registration_screen.dart:132:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\auth\registration_screen.dart:134:61 - deprecated_member_use
+  error - Invalid constant value - lib\presentation\screens\dashboard\dashboard_screen.dart:33:47 - invalid_constant
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\dashboard_screen.dart:64:75 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\dashboard_screen.dart:73:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\dashboard_screen.dart:74:84 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\dashboard_screen.dart:113:54 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\dashboard\dashboard_screen.dart:119:34 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\dashboard_screen.dart:150:37 - deprecated_member_use
+  error - The getter 'saltTasteRating' isn't defined for the type 'Preference' - lib\presentation\screens\dashboard\edit_preferences_modal.dart:31:45 - undefined_getter
+  error - The getter 'pregnant' isn't defined for the type 'Preference' - lib\presentation\screens\dashboard\edit_preferences_modal.dart:34:43 - undefined_getter
+  error - The named parameter 'saltTasteRating' isn't defined - lib\presentation\screens\dashboard\edit_preferences_modal.dart:49:7 - undefined_named_parameter
+  error - The named parameter 'pregnant' isn't defined - lib\presentation\screens\dashboard\edit_preferences_modal.dart:52:7 - undefined_named_parameter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\edit_preferences_modal.dart:142:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\edit_preferences_modal.dart:144:57 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\presentation\screens\dashboard\edit_preferences_modal.dart:153:13 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\edit_preferences_modal.dart:154:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\manage_family_screen.dart:69:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\manage_family_screen.dart:71:69 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\manage_family_screen.dart:78:57 - deprecated_member_use
+  error - The named parameter 'saltTasteRating' isn't defined - lib\presentation\screens\dashboard\manage_preferences_screen.dart:20:5 - undefined_named_parameter
+  error - The named parameter 'pregnant' isn't defined - lib\presentation\screens\dashboard\manage_preferences_screen.dart:23:5 - undefined_named_parameter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\manage_preferences_screen.dart:30:34 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\dashboard\manage_preferences_screen.dart:38:28 - use_build_context_synchronously
+  error - The method 'toInt' can't be unconditionally invoked because the receiver can be 'null' - lib\presentation\screens\dashboard\manage_preferences_screen.dart:117:87 - unchecked_use_of_nullable_value
+  error - The getter 'saltTasteRating' isn't defined for the type 'Preference' - lib\presentation\screens\dashboard\manage_preferences_screen.dart:118:75 - undefined_getter
+  error - The method 'toInt' can't be unconditionally invoked because the receiver can be 'null' - lib\presentation\screens\dashboard\manage_preferences_screen.dart:119:85 - unchecked_use_of_nullable_value
+  error - A nullable expression can't be used as a condition - lib\presentation\screens\dashboard\manage_preferences_screen.dart:120:58 - unchecked_use_of_nullable_value
+  error - The getter 'pregnant' isn't defined for the type 'Preference' - lib\presentation\screens\dashboard\manage_preferences_screen.dart:121:71 - undefined_getter
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  - lib\presentation\screens\dashboard\manage_preferences_screen.dart:134:37 - argument_type_not_assignable
+  error - The property 'isEmpty' can't be unconditionally accessed because the receiver can be 'null' - lib\presentation\screens\dashboard\manage_preferences_screen.dart:134:63 - unchecked_use_of_nullable_value
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\meals_screen.dart:91:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\add_family_member_modal.dart:127:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\custom_slider.dart:37:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\custom_slider.dart:39:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\custom_slider.dart:54:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\family_member_card.dart:22:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\family_member_card.dart:24:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\family_member_card.dart:27:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\family_member_card.dart:47:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\family_member_card.dart:47:90 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\family_member_card.dart:51:69 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\glass_button.dart:33:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\glass_text_field.dart:47:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\glass_text_field.dart:50:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\glass_text_field.dart:54:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\meal_card.dart:28:29 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\meal_card.dart:29:29 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\meal_card.dart:33:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\meal_card.dart:36:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\meal_card.dart:68:52 - deprecated_member_use
+  error - The argument type 'void Function()?' can't be assigned to the parameter type 'VoidCallback'.  - lib\presentation\widgets\shopping_list_modal.dart:136:28 - argument_type_not_assignable
+
