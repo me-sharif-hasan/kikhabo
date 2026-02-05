@@ -26,7 +26,9 @@ class _ShoppingListModalState extends State<ShoppingListModal> {
     final Map<String, int> groceries = {};
     for (var meal in widget.meals) {
       for (var grocery in (meal.groceries ?? [])) {
-        final amount = int.tryParse(grocery.amountInGm.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        // Parse directly as double to handle '200' or '2.5' correctly
+        // Regex [^0-9] was stripping '.', turning '2.5' into '25'
+        final amount = double.tryParse(grocery.amountInGm.trim())?.round() ?? 0;
         groceries[grocery.name] = (groceries[grocery.name] ?? 0) + amount;
       }
     }

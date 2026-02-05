@@ -126,6 +126,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
       ),
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: AppColors.bgGradient2, 
         ),
