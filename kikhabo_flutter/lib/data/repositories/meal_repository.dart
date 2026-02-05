@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../data/datasources/meal_datasource.dart';
 import '../../data/models/meal.dart';
 import '../../data/models/preference.dart';
@@ -10,6 +11,7 @@ class MealRepository {
   MealRepository(this._dataSource);
 
   String _mapError(Object e) {
+    debugPrint(e.toString());
     if (e is DioException) {
       return e.response?.data['message'] ?? 'Network error occurred';
     }

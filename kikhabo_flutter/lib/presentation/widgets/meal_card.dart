@@ -4,7 +4,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/glass_styles.dart';
 import '../../data/models/meal.dart';
 
-class MealCard extends StatelessWidget {
+class MealCard extends StatefulWidget {
   final Meal meal;
   final VoidCallback? onTap;
   final VoidCallback? onRate;
@@ -17,7 +17,19 @@ class MealCard extends StatelessWidget {
   });
 
   @override
+  State<MealCard> createState() => _MealCardState();
+}
+
+class _MealCardState extends State<MealCard> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    final groceriesToShow = _isExpanded 
+        ? (widget.meal.groceries ?? []) 
+        : (widget.meal.groceries ?? []).take(3).toList();
+    final hasMoreItems = (widget.meal.groceries?.length ?? 0) > 3;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -44,7 +56,7 @@ class MealCard extends StatelessWidget {
         child: BackdropFilter(
           filter: GlassStyles.blurFilter,
           child: InkWell(
-            onTap: onTap,
+            onTap: widget.onTap,
             borderRadius: BorderRadius.circular(20),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -56,9 +68,9 @@ class MealCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          meal.mealName,
+                          widget.meal.mealName,
                           style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -69,19 +81,20 @@ class MealCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '${meal.totalEnergy} kcal',
+                          '${widget.meal.totalEnergy} kcal',
                           style: AppTextStyles.labelSmall.copyWith(color: AppColors.primaryLight),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Ingredients: ${meal.ingredients?.join(", ")}',
-                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  if (widget.meal.ingredients != null && widget.meal.ingredients!.isNotEmpty)
+                    Text(
+                      'Ingredients: ${widget.meal.ingredients}',
+                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                      maxLines: _isExpanded ? null : 2,
+                      overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                    ),
                   const SizedBox(height: 12),
                   const Divider(color: Colors.white10),
                   const SizedBox(height: 8),
@@ -90,32 +103,62 @@ class MealCard extends StatelessWidget {
                     style: AppTextStyles.labelMedium.copyWith(color: AppColors.primaryLight),
                   ),
                   const SizedBox(height: 4),
-                  ...(meal.groceries ?? []).take(3).map((g) => Padding(
+                  ...groceriesToShow.map((g) => Padding(
                         padding: const EdgeInsets.only(bottom: 2),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(g.name, style: AppTextStyles.bodySmall),
-                            Text('${g.amountInGm}g', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+                            Expanded(
+                              child: Text(
+                                g.name, 
+                                style: AppTextStyles.bodySmall,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              '${g.amountInGm}g', 
+                              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)
+                            ),
                           ],
                         ),
                       )),
-                  if ((meal.groceries?.length ?? 0) > 3)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        '+ ${(meal.groceries?.length ?? 0) - 3} more items',
-                        style: AppTextStyles.labelSmall.copyWith(color: Colors.white54),
+                  if (hasMoreItems)
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _isExpanded = !_isExpanded;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: [
+                            Text(
+                              _isExpanded 
+                                  ? 'Show less' 
+                                  : '+ ${(widget.meal.groceries?.length ?? 0) - 3} more items',
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: AppColors.primaryLight,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Icon(
+                              _isExpanded ? Icons.expand_less : Icons.expand_more,
+                              color: AppColors.primaryLight,
+                              size: 16,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   const SizedBox(height: 12),
                   Row(
                      mainAxisAlignment: MainAxisAlignment.end,
                      children: [
-                        if (onRate != null)
+                        if (widget.onRate != null)
                           IconButton(
                             icon: const Icon(Icons.star_border, color: AppColors.accent),
-                            onPressed: onRate,
+                            onPressed: widget.onRate,
                             tooltip: 'Rate Meal',
                           ),
                      ],

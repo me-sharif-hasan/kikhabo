@@ -284,7 +284,9 @@ as String,
 /// @nodoc
 mixin _$Meal {
 
- int? get id; String get mealName; String get totalEnergy; List<String>? get ingredients; List<Grocery>? get groceries; String? get note; double? get rating;
+ int? get id; String get mealName; dynamic get totalEnergy;// Changed to dynamic to handle int or String from API
+ String? get ingredients;// Changed from List<String>? to String? to match API
+ List<Grocery>? get groceries; String? get note; double? get rating;
 /// Create a copy of Meal
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -297,12 +299,12 @@ $MealCopyWith<Meal> get copyWith => _$MealCopyWithImpl<Meal>(this as Meal, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Meal&&(identical(other.id, id) || other.id == id)&&(identical(other.mealName, mealName) || other.mealName == mealName)&&(identical(other.totalEnergy, totalEnergy) || other.totalEnergy == totalEnergy)&&const DeepCollectionEquality().equals(other.ingredients, ingredients)&&const DeepCollectionEquality().equals(other.groceries, groceries)&&(identical(other.note, note) || other.note == note)&&(identical(other.rating, rating) || other.rating == rating));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Meal&&(identical(other.id, id) || other.id == id)&&(identical(other.mealName, mealName) || other.mealName == mealName)&&const DeepCollectionEquality().equals(other.totalEnergy, totalEnergy)&&(identical(other.ingredients, ingredients) || other.ingredients == ingredients)&&const DeepCollectionEquality().equals(other.groceries, groceries)&&(identical(other.note, note) || other.note == note)&&(identical(other.rating, rating) || other.rating == rating));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,mealName,totalEnergy,const DeepCollectionEquality().hash(ingredients),const DeepCollectionEquality().hash(groceries),note,rating);
+int get hashCode => Object.hash(runtimeType,id,mealName,const DeepCollectionEquality().hash(totalEnergy),ingredients,const DeepCollectionEquality().hash(groceries),note,rating);
 
 @override
 String toString() {
@@ -317,7 +319,7 @@ abstract mixin class $MealCopyWith<$Res>  {
   factory $MealCopyWith(Meal value, $Res Function(Meal) _then) = _$MealCopyWithImpl;
 @useResult
 $Res call({
- int? id, String mealName, String totalEnergy, List<String>? ingredients, List<Grocery>? groceries, String? note, double? rating
+ int? id, String mealName, dynamic totalEnergy, String? ingredients, List<Grocery>? groceries, String? note, double? rating
 });
 
 
@@ -334,13 +336,13 @@ class _$MealCopyWithImpl<$Res>
 
 /// Create a copy of Meal
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? mealName = null,Object? totalEnergy = null,Object? ingredients = freezed,Object? groceries = freezed,Object? note = freezed,Object? rating = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? mealName = null,Object? totalEnergy = freezed,Object? ingredients = freezed,Object? groceries = freezed,Object? note = freezed,Object? rating = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,mealName: null == mealName ? _self.mealName : mealName // ignore: cast_nullable_to_non_nullable
-as String,totalEnergy: null == totalEnergy ? _self.totalEnergy : totalEnergy // ignore: cast_nullable_to_non_nullable
-as String,ingredients: freezed == ingredients ? _self.ingredients : ingredients // ignore: cast_nullable_to_non_nullable
-as List<String>?,groceries: freezed == groceries ? _self.groceries : groceries // ignore: cast_nullable_to_non_nullable
+as String,totalEnergy: freezed == totalEnergy ? _self.totalEnergy : totalEnergy // ignore: cast_nullable_to_non_nullable
+as dynamic,ingredients: freezed == ingredients ? _self.ingredients : ingredients // ignore: cast_nullable_to_non_nullable
+as String?,groceries: freezed == groceries ? _self.groceries : groceries // ignore: cast_nullable_to_non_nullable
 as List<Grocery>?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,rating: freezed == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as double?,
@@ -428,7 +430,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String mealName,  String totalEnergy,  List<String>? ingredients,  List<Grocery>? groceries,  String? note,  double? rating)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String mealName,  dynamic totalEnergy,  String? ingredients,  List<Grocery>? groceries,  String? note,  double? rating)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Meal() when $default != null:
 return $default(_that.id,_that.mealName,_that.totalEnergy,_that.ingredients,_that.groceries,_that.note,_that.rating);case _:
@@ -449,7 +451,7 @@ return $default(_that.id,_that.mealName,_that.totalEnergy,_that.ingredients,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String mealName,  String totalEnergy,  List<String>? ingredients,  List<Grocery>? groceries,  String? note,  double? rating)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String mealName,  dynamic totalEnergy,  String? ingredients,  List<Grocery>? groceries,  String? note,  double? rating)  $default,) {final _that = this;
 switch (_that) {
 case _Meal():
 return $default(_that.id,_that.mealName,_that.totalEnergy,_that.ingredients,_that.groceries,_that.note,_that.rating);case _:
@@ -469,7 +471,7 @@ return $default(_that.id,_that.mealName,_that.totalEnergy,_that.ingredients,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String mealName,  String totalEnergy,  List<String>? ingredients,  List<Grocery>? groceries,  String? note,  double? rating)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String mealName,  dynamic totalEnergy,  String? ingredients,  List<Grocery>? groceries,  String? note,  double? rating)?  $default,) {final _that = this;
 switch (_that) {
 case _Meal() when $default != null:
 return $default(_that.id,_that.mealName,_that.totalEnergy,_that.ingredients,_that.groceries,_that.note,_that.rating);case _:
@@ -484,22 +486,17 @@ return $default(_that.id,_that.mealName,_that.totalEnergy,_that.ingredients,_tha
 @JsonSerializable()
 
 class _Meal implements Meal {
-  const _Meal({this.id, required this.mealName, required this.totalEnergy, final  List<String>? ingredients, final  List<Grocery>? groceries, this.note, this.rating}): _ingredients = ingredients,_groceries = groceries;
+  const _Meal({this.id, required this.mealName, required this.totalEnergy, this.ingredients, final  List<Grocery>? groceries, this.note, this.rating}): _groceries = groceries;
   factory _Meal.fromJson(Map<String, dynamic> json) => _$MealFromJson(json);
 
 @override final  int? id;
 @override final  String mealName;
-@override final  String totalEnergy;
- final  List<String>? _ingredients;
-@override List<String>? get ingredients {
-  final value = _ingredients;
-  if (value == null) return null;
-  if (_ingredients is EqualUnmodifiableListView) return _ingredients;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(value);
-}
-
+@override final  dynamic totalEnergy;
+// Changed to dynamic to handle int or String from API
+@override final  String? ingredients;
+// Changed from List<String>? to String? to match API
  final  List<Grocery>? _groceries;
+// Changed from List<String>? to String? to match API
 @override List<Grocery>? get groceries {
   final value = _groceries;
   if (value == null) return null;
@@ -524,12 +521,12 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Meal&&(identical(other.id, id) || other.id == id)&&(identical(other.mealName, mealName) || other.mealName == mealName)&&(identical(other.totalEnergy, totalEnergy) || other.totalEnergy == totalEnergy)&&const DeepCollectionEquality().equals(other._ingredients, _ingredients)&&const DeepCollectionEquality().equals(other._groceries, _groceries)&&(identical(other.note, note) || other.note == note)&&(identical(other.rating, rating) || other.rating == rating));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Meal&&(identical(other.id, id) || other.id == id)&&(identical(other.mealName, mealName) || other.mealName == mealName)&&const DeepCollectionEquality().equals(other.totalEnergy, totalEnergy)&&(identical(other.ingredients, ingredients) || other.ingredients == ingredients)&&const DeepCollectionEquality().equals(other._groceries, _groceries)&&(identical(other.note, note) || other.note == note)&&(identical(other.rating, rating) || other.rating == rating));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,mealName,totalEnergy,const DeepCollectionEquality().hash(_ingredients),const DeepCollectionEquality().hash(_groceries),note,rating);
+int get hashCode => Object.hash(runtimeType,id,mealName,const DeepCollectionEquality().hash(totalEnergy),ingredients,const DeepCollectionEquality().hash(_groceries),note,rating);
 
 @override
 String toString() {
@@ -544,7 +541,7 @@ abstract mixin class _$MealCopyWith<$Res> implements $MealCopyWith<$Res> {
   factory _$MealCopyWith(_Meal value, $Res Function(_Meal) _then) = __$MealCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, String mealName, String totalEnergy, List<String>? ingredients, List<Grocery>? groceries, String? note, double? rating
+ int? id, String mealName, dynamic totalEnergy, String? ingredients, List<Grocery>? groceries, String? note, double? rating
 });
 
 
@@ -561,13 +558,13 @@ class __$MealCopyWithImpl<$Res>
 
 /// Create a copy of Meal
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? mealName = null,Object? totalEnergy = null,Object? ingredients = freezed,Object? groceries = freezed,Object? note = freezed,Object? rating = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? mealName = null,Object? totalEnergy = freezed,Object? ingredients = freezed,Object? groceries = freezed,Object? note = freezed,Object? rating = freezed,}) {
   return _then(_Meal(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,mealName: null == mealName ? _self.mealName : mealName // ignore: cast_nullable_to_non_nullable
-as String,totalEnergy: null == totalEnergy ? _self.totalEnergy : totalEnergy // ignore: cast_nullable_to_non_nullable
-as String,ingredients: freezed == ingredients ? _self._ingredients : ingredients // ignore: cast_nullable_to_non_nullable
-as List<String>?,groceries: freezed == groceries ? _self._groceries : groceries // ignore: cast_nullable_to_non_nullable
+as String,totalEnergy: freezed == totalEnergy ? _self.totalEnergy : totalEnergy // ignore: cast_nullable_to_non_nullable
+as dynamic,ingredients: freezed == ingredients ? _self.ingredients : ingredients // ignore: cast_nullable_to_non_nullable
+as String?,groceries: freezed == groceries ? _self._groceries : groceries // ignore: cast_nullable_to_non_nullable
 as List<Grocery>?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,rating: freezed == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as double?,

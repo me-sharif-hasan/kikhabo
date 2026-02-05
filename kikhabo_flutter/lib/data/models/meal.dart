@@ -21,8 +21,8 @@ abstract class Meal with _$Meal {
   const factory Meal({
     int? id,
     required String mealName,
-    required String totalEnergy,
-    List<String>? ingredients,
+    required dynamic totalEnergy, // Changed to dynamic to handle int or String from API
+    String? ingredients, // Changed from List<String>? to String? to match API
     List<Grocery>? groceries,
     String? note,
     double? rating, // 1-5 rating, Added for new feature

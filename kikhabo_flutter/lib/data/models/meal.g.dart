@@ -21,10 +21,8 @@ Map<String, dynamic> _$GroceryToJson(_Grocery instance) => <String, dynamic>{
 _Meal _$MealFromJson(Map<String, dynamic> json) => _Meal(
   id: (json['id'] as num?)?.toInt(),
   mealName: json['mealName'] as String,
-  totalEnergy: json['totalEnergy'] as String,
-  ingredients: (json['ingredients'] as List<dynamic>?)
-      ?.map((e) => e as String)
-      .toList(),
+  totalEnergy: json['totalEnergy'],
+  ingredients: json['ingredients'] as String?,
   groceries: (json['groceries'] as List<dynamic>?)
       ?.map((e) => Grocery.fromJson(e as Map<String, dynamic>))
       .toList(),

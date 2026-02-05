@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../data/models/meal.dart';
+import '../../../domain/providers/meal_provider.dart';
 import '../../widgets/glass_button.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_slider.dart';
@@ -14,15 +17,54 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  // Meal Planning State (Local for now, will move to Provider later)
+  // Meal Planning State
   double _spicyRating = 5.0;
   double _saltRating = 5.0;
-  double _priceRating = 5.0;
+  double _priceRating = 3.0;
   double _daysCount = 1.0;
   double _mealsPerDay = 3.0;
 
+  Future<void> _generateMealPlan() async {
+    // Calculate total meal count
+    final totalMealCount = (_daysCount * _mealsPerDay).toInt();
+    
+    // Create preference DTO
+    final preferenceDto = MealPreferenceDto(
+      spicyRating: _spicyRating,
+      saltRating: _saltRating,
+      dayCount: _daysCount.toInt(),
+      priceRating: _priceRating,
+      totalMealCount: totalMealCount,
+      mealPerDay: _mealsPerDay.toInt(),
+      agesOfTheMembers: [24], // Default age, can be updated later with family data
+    );
+
+    try {
+      // Call API
+      await ref.read(mealPlanningProvider.notifier).generateMealPlan(preferenceDto);
+      
+      // Navigate to meals screen on success
+      if (mounted) {
+        context.go('/dashboard/meals');
+      }
+    } catch (e) {
+      // Error handling - show snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate meal plan: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final mealPlanningState = ref.watch(mealPlanningProvider);
+    final isLoading = mealPlanningState.isLoading;
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -63,7 +105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     min: 1,
                     max: 10,
                     divisions: 9,
-                    onChanged: (v) => setState(() => _spicyRating = v),
+                    onChanged: isLoading ? null : (v) => setState(() => _spicyRating = v),
                     labelBuilder: (v) => '${v.toInt()}/10',
                   ),
                   const SizedBox(height: 20),
@@ -74,7 +116,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     min: 1,
                     max: 10,
                     divisions: 9,
-                    onChanged: (v) => setState(() => _saltRating = v),
+                    onChanged: isLoading ? null : (v) => setState(() => _saltRating = v),
                     labelBuilder: (v) => '${v.toInt()}/10',
                   ),
                   const SizedBox(height: 20),
@@ -85,7 +127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     min: 1,
                     max: 5,
                     divisions: 4,
-                    onChanged: (v) => setState(() => _priceRating = v),
+                    onChanged: isLoading ? null : (v) => setState(() => _priceRating = v),
                     labelBuilder: (v) {
                       if (v <= 2) return 'Budget';
                       if (v <= 4) return 'Standard';
@@ -103,7 +145,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           min: 1,
                           max: 7,
                           divisions: 6,
-                          onChanged: (v) => setState(() => _daysCount = v),
+                          onChanged: isLoading ? null : (v) => setState(() => _daysCount = v),
                           labelBuilder: (v) => '${v.toInt()} Days',
                         ),
                       ),
@@ -115,7 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           min: 1,
                           max: 5,
                           divisions: 4,
-                          onChanged: (v) => setState(() => _mealsPerDay = v),
+                          onChanged: isLoading ? null : (v) => setState(() => _mealsPerDay = v),
                           labelBuilder: (v) => '${v.toInt()} Meals',
                         ),
                       ),
@@ -124,14 +166,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 40),
 
                   GlassButton(
-                    text: 'Generate Meal Plan 🪄',
-                    onPressed: () {
-                      // Logic to trigger API call will go here
-                      ScaffoldMessenger.of(context).showSnackBar(
-                         const SnackBar(content: Text('Generating plan... (API logic pending)')),
-                      );
-                    },
+                    text: isLoading ? 'Generating...' : 'Generate Meal Plan 🪄',
+                    onPressed: isLoading ? null : _generateMealPlan,
                     gradient: AppColors.bgGradient1,
+                    isLoading: isLoading,
                   ),
                 ],
               ),

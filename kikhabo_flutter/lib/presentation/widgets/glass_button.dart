@@ -4,7 +4,7 @@ import '../../core/theme/app_text_styles.dart';
 
 class GlassButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isLoading;
   final double? width;
   final double? height;

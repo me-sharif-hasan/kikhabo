@@ -8,7 +8,7 @@ class CustomSlider extends StatelessWidget {
   final double min;
   final double max;
   final int? divisions;
-  final ValueChanged<double> onChanged;
+  final ValueChanged<double>? onChanged;
   final String Function(double)? labelBuilder;
 
   const CustomSlider({
@@ -30,7 +30,14 @@ class CustomSlider extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: AppTextStyles.labelLarge),
+            Flexible(
+              child: Text(
+                label, 
+                style: AppTextStyles.labelLarge,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
