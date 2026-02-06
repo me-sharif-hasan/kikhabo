@@ -65,6 +65,49 @@ class MealPlanningNotifier extends StateNotifier<MealPlanningState> {
     }
   }
 
+  /// Updates meal status (TAKEN/SKIPPED/PLANNED), rating, and notes
+  Future<bool> updateMealStatus({
+    required int mealId,
+    String? status,
+    int? rating,
+    String? note,
+  }) async {
+    try {
+      final update = MealRatingStatusDto(
+        id: mealId,
+        rating: rating ?? 0,
+        userNote: note ?? '',
+        mealStatus: status ?? 'PLANNED',
+      );
+      
+      final success = await _repository.updateMealHistory([update]);
+      
+      if (success && state.mealInformation != null) {
+        // Update local state
+        final updatedMeals = state.mealInformation!.meals.map((meal) {
+          if (meal.id == mealId) {
+            return meal.copyWith(
+              rating: rating?.toDouble(),
+              mealStatus: status,
+              userNote: note,
+            );
+          }
+          return meal;
+        }).toList();
+        
+        state = state.copyWith(
+          mealInformation: state.mealInformation!.copyWith(
+            meals: updatedMeals,
+          ),
+        );
+      }
+      
+      return success;
+    } catch (e) {
+      return false;
+    }
+  }
+
   void clearError() {
     state = state.copyWith(error: null);
   }
@@ -74,4 +117,10 @@ class MealPlanningNotifier extends StateNotifier<MealPlanningState> {
 final mealPlanningProvider = StateNotifierProvider<MealPlanningNotifier, MealPlanningState>((ref) {
   final repository = ref.watch(mealRepositoryProvider);
   return MealPlanningNotifier(repository);
+});
+
+/// Provider for meal history (paginated)
+final mealHistoryProvider = FutureProvider.family<List<Meal>, int>((ref, page) async {
+  final repository = ref.watch(mealRepositoryProvider);
+  return repository.getMealHistory(page: page, size: 10);
 });

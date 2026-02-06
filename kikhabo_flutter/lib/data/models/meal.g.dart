@@ -26,8 +26,14 @@ _Meal _$MealFromJson(Map<String, dynamic> json) => _Meal(
   groceries: (json['groceries'] as List<dynamic>?)
       ?.map((e) => Grocery.fromJson(e as Map<String, dynamic>))
       .toList(),
+  groceryNames: (json['groceryNames'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
   note: json['note'] as String?,
   rating: (json['rating'] as num?)?.toDouble(),
+  mealStatus: json['mealStatus'] as String?,
+  userNote: json['userNote'] as String?,
+  timestamp: (json['timestamp'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$MealToJson(_Meal instance) => <String, dynamic>{
@@ -36,8 +42,12 @@ Map<String, dynamic> _$MealToJson(_Meal instance) => <String, dynamic>{
   'totalEnergy': instance.totalEnergy,
   'ingredients': instance.ingredients,
   'groceries': instance.groceries,
+  'groceryNames': instance.groceryNames,
   'note': instance.note,
   'rating': instance.rating,
+  'mealStatus': instance.mealStatus,
+  'userNote': instance.userNote,
+  'timestamp': instance.timestamp,
 };
 
 _MealPreferenceDto _$MealPreferenceDtoFromJson(Map<String, dynamic> json) =>

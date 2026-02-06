@@ -41,4 +41,20 @@ class MealRepository {
       throw Exception(_mapError(e));
     }
   }
+
+  Future<bool> updateMealHistory(List<MealRatingStatusDto> updates) async {
+    try {
+      return await _dataSource.updateMealHistory(updates);
+    } catch (e) {
+      throw Exception(_mapError(e));
+    }
+  }
+
+  Future<List<Meal>> getMealHistory({int page = 0, int size = 10}) async {
+    try {
+      return await _dataSource.getMealHistory(page: page, size: size);
+    } catch (e) {
+      throw Exception(_mapError(e));
+    }
+  }
 }

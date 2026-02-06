@@ -11,7 +11,7 @@ import 'presentation/screens/dashboard/home_screen.dart';
 import 'presentation/screens/dashboard/meals_screen.dart';
 import 'presentation/screens/dashboard/manage_family_screen.dart';
 import 'presentation/screens/dashboard/manage_preferences_screen.dart';
-import 'presentation/screens/dashboard/statistics_screen.dart';
+import 'presentation/screens/dashboard/meal_statistics_screen.dart';
 import 'presentation/screens/dashboard/profile_screen.dart';
 import 'presentation/screens/dashboard/edit_profile_screen.dart';
 
@@ -107,7 +107,7 @@ class _KikhaboAppState extends ConsumerState<KikhaboApp> {
             ),
             GoRoute(
               path: 'statistics',
-              builder: (context, state) => const DashboardScreen(child: StatisticsScreen()),
+              builder: (context, state) => const DashboardScreen(child: MealStatisticsScreen()),
             ),
             GoRoute(
               path: 'profile',

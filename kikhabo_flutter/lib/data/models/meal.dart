@@ -23,9 +23,13 @@ abstract class Meal with _$Meal {
     required String mealName,
     required dynamic totalEnergy, // Changed to dynamic to handle int or String from API
     String? ingredients, // Changed from List<String>? to String? to match API
-    List<Grocery>? groceries,
+    List<Grocery>? groceries, // From meal planning API
+    List<String>? groceryNames, // From meal history API
     String? note,
-    double? rating, // 1-5 rating, Added for new feature
+    double? rating, // 1-5 rating
+    String? mealStatus, // TAKEN, SKIPPED, PLANNED
+    String? userNote, // User's feedback/note
+    int? timestamp, // From meal history API
   }) = _Meal;
 
   factory Meal.fromJson(Map<String, dynamic> json) => _$MealFromJson(json);
