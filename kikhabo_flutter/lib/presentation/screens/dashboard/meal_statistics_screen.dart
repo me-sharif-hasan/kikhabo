@@ -176,7 +176,7 @@ class _MealStatisticsScreenState extends ConsumerState<MealStatisticsScreen> {
                               ),
                               loading: () => const Center(
                                 child: CircularProgressIndicator(
-                                  color: AppColors.accent,
+                                  color: AppColors.primary,
                                 ),
                               ),
                               error: (error, _) => Center(
@@ -257,12 +257,7 @@ class _PeriodChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryLight],
-                )
-              : null,
-          color: isSelected ? null : AppColors.surface.withOpacity(0.3),
+          color: isSelected ? AppColors.primary : AppColors.surface.withOpacity(0.3),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.glassBorder,

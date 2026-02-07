@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/api_error_handler.dart';
 import '../../../data/models/meal.dart';
 import '../../../domain/providers/meal_provider.dart';
 import '../../widgets/glass_button.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_slider.dart';
+import 'package:dio/dio.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -43,19 +45,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // Call API
       await ref.read(mealPlanningProvider.notifier).generateMealPlan(preferenceDto);
       
-      // Navigate to meals screen on success
+      // Navigate to meals screen with suggested view on success
       if (mounted) {
-        context.go('/dashboard/meals');
+        context.go('/dashboard/meals?view=suggested');
       }
     } catch (e) {
-      // Error handling - show snackbar
+      // Error handling using centralized error handler
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to generate meal plan: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (e is DioException) {
+          ApiErrorHandler.handleError(e, context);
+        } else {
+          // Strip "Exception: " prefix from error message
+          final errorMessage = e.toString().replaceFirst('Exception: ', '');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

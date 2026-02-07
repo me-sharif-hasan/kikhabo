@@ -62,7 +62,7 @@ class ManageFamilyScreen extends ConsumerWidget {
             ),
             Expanded(
               child: isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : familyMembers.isEmpty
                   ? Center(
                       child: GlassCard(

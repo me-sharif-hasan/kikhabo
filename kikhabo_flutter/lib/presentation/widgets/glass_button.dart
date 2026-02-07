@@ -26,7 +26,8 @@ class GlassButton extends StatelessWidget {
       width: width ?? double.infinity,
       height: height ?? 50,
       decoration: BoxDecoration(
-        gradient: gradient ?? AppColors.bgGradient2,
+        color: gradient != null ? null : AppColors.primary,
+        gradient: gradient,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -56,7 +57,11 @@ class GlassButton extends StatelessWidget {
               )
             : Text(
                 text,
-                style: AppTextStyles.labelLarge.copyWith(fontSize: 16),
+                style: AppTextStyles.labelLarge.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
       ),
     );

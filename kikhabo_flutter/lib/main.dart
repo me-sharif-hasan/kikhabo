@@ -12,8 +12,11 @@ import 'presentation/screens/dashboard/meals_screen.dart';
 import 'presentation/screens/dashboard/manage_family_screen.dart';
 import 'presentation/screens/dashboard/manage_preferences_screen.dart';
 import 'presentation/screens/dashboard/meal_statistics_screen.dart';
+import 'presentation/screens/dashboard/meal_details_screen.dart';
 import 'presentation/screens/dashboard/profile_screen.dart';
 import 'presentation/screens/dashboard/edit_profile_screen.dart';
+import 'data/models/meal.dart';
+
 
 void main() {
   runApp(const ProviderScope(child: KikhaboApp()));
@@ -108,6 +111,13 @@ class _KikhaboAppState extends ConsumerState<KikhaboApp> {
             GoRoute(
               path: 'statistics',
               builder: (context, state) => const DashboardScreen(child: MealStatisticsScreen()),
+            ),
+            GoRoute(
+              path: 'meal_details',
+              builder: (context, state) {
+                final meal = state.extra as Meal;
+                return DashboardScreen(child: MealDetailsScreen(meal: meal));
+              },
             ),
             GoRoute(
               path: 'profile',

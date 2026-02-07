@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/api_error_handler.dart';
 
 /// Single responsibility: Managing API connection and interceptors.
 class DioClient {
@@ -40,7 +41,8 @@ class DioClient {
           return handler.next(options);
         },
         onError: (DioException e, ErrorInterceptorHandler handler) {
-          // Global error handling logic can be added here
+          // Note: Context-based error handling will be done at the UI layer
+          // UI components can use ApiErrorHandler.handleError(e, context) to show toasts
           return handler.next(e);
         },
       ),

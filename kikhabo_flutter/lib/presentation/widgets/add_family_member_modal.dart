@@ -103,7 +103,7 @@ class _AddFamilyMemberModalState extends ConsumerState<AddFamilyMemberModal> {
             if (isSearching)
               const Padding(
                 padding: EdgeInsets.only(top: 40),
-                child: CircularProgressIndicator(color: AppColors.accent),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
             
             if (!isSearching && filteredResults.isEmpty && _searchController.text.isNotEmpty)

@@ -119,8 +119,8 @@ final mealPlanningProvider = StateNotifierProvider<MealPlanningNotifier, MealPla
   return MealPlanningNotifier(repository);
 });
 
-/// Provider for meal history (paginated)
-final mealHistoryProvider = FutureProvider.family<List<Meal>, int>((ref, page) async {
+/// Provider for meal history (paginated) - auto-disposes to reload data on navigation
+final mealHistoryProvider = FutureProvider.autoDispose.family<List<Meal>, int>((ref, page) async {
   final repository = ref.watch(mealRepositoryProvider);
   return repository.getMealHistory(page: page, size: 10);
 });

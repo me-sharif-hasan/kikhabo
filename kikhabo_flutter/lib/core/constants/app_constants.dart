@@ -1,4 +1,4 @@
 class AppConstants {
-  static const String appName = 'KIKHABO';
+  static const String appName = 'Ki Khabo';
   static const String tokenKey = 'token';
 }

@@ -11,7 +11,16 @@ class FamilyRepository {
 
   String _mapError(Object e) {
     if (e is DioException) {
-      return e.response?.data['message'] ?? 'Network error occurred';
+      final message = e.response?.data['message'];
+      
+      // Handle List of error messages
+      if (message is List) {
+        return message.map((e) => e.toString()).join('\n');
+      } else if (message is String) {
+        return message;
+      }
+      
+      return 'Network error occurred';
     }
     return 'Unknown error occurred';
   }

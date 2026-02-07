@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../data/models/meal.dart';
@@ -26,12 +27,28 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    
+    // Reset pagination state on init to force reload
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _allMeals.clear();
+          _currentPage = 0;
+          _hasMorePages = true;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  bool _isSuggestedMode(BuildContext context) {
+    final uri = GoRouterState.of(context).uri;
+    return uri.queryParameters['view'] == 'suggested';
   }
 
   void _onScroll() {
@@ -70,203 +87,185 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
     }
   }
 
+  Future<void> _refreshMeals() async {
+    // Invalidate the provider to force a reload
+    ref.invalidate(mealHistoryProvider);
+    
+    setState(() {
+      _allMeals.clear();
+      _currentPage = 0;
+      _hasMorePages = true;
+    });
+  }
+
+  Future<void> _refreshSuggestedMeals() async {
+    // For suggested meals, just show a brief loading state
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Fetch initial meal history from API (page 0, size 10)
-    final mealHistoryAsync = ref.watch(mealHistoryProvider(0));
+    final isSuggested = _isSuggestedMode(context);
     
-    // Fallback to current meal plan if history is empty
+    // Get suggested meals from planning provider
     final mealPlanningState = ref.watch(mealPlanningProvider);
-    final currentPlanMeals = mealPlanningState.mealInformation?.meals ?? [];
+    final suggestedMeals = mealPlanningState.mealInformation?.meals ?? [];
+    
+    // If in suggested mode, show suggested meals directly
+    if (isSuggested) {
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: _refreshSuggestedMeals,
+            color: AppColors.primary,
+            child: _buildMealsList(
+              meals: suggestedMeals,
+              title: 'Suggested Meals',
+              isPaginated: false,
+            ),
+          ),
+        ),
+      );
+    }
+    
+    // Otherwise, show history with pagination
+    final mealHistoryAsync = ref.watch(mealHistoryProvider(0));
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: mealHistoryAsync.when(
-          data: (historyMeals) {
-            // Initialize _allMeals with first page if empty
-            if (_allMeals.isEmpty && historyMeals.isNotEmpty) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  setState(() {
-                    _allMeals.addAll(historyMeals);
-                  });
-                }
-              });
-            }
+        child: RefreshIndicator(
+          onRefresh: _refreshMeals,
+          color: AppColors.primary,
+          child: mealHistoryAsync.when(
+            data: (historyMeals) {
+              // Initialize _allMeals with first page if empty
+              if (_allMeals.isEmpty && historyMeals.isNotEmpty) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _allMeals.addAll(historyMeals);
+                    });
+                  }
+                });
+              }
 
-            // Use accumulated meals if available, otherwise use current plan
-            final meals = _allMeals.isNotEmpty ? _allMeals : currentPlanMeals;
-            final isHistory = _allMeals.isNotEmpty;
-            
-            return Column(
-              children: [
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: GlassCard(
-                    blur: 10,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isHistory ? 'Meal History' : 'Suggested Meals',
-                              style: AppTextStyles.titleLarge,
-                            ),
-                            Text(
-                              meals.isEmpty
-                                  ? 'No meals generated yet'
-                                  : '${meals.length} meals${_hasMorePages ? '+' : ''}',
-                              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                            ),
-                          ],
-                        ),
-                        if (meals.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.download_rounded, color: AppColors.accent),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => ShoppingListModal(meals: meals),
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: meals.isEmpty
-                      ? Center(
-                          child: GlassCard(
-                            blur: 10,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.restaurant_menu, size: 64, color: AppColors.textSecondary),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No Meals Yet',
-                                  style: AppTextStyles.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Generate a meal plan to get started',
-                                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(16),
-                          itemCount: meals.length + (_isLoadingMore ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index == meals.length) {
-                              // Loading indicator at bottom
-                              return const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              );
-                            }
-                            return MealCard(
-                              meal: meals[index],
-                            );
-                          },
-                        ),
-                ),
-              ],
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) {
-            // On error, fallback to current plan
-            final meals = currentPlanMeals;
-            
-            return Column(
-              children: [
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: GlassCard(
-                    blur: 10,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Suggested Meals', style: AppTextStyles.titleLarge),
-                            Text(
-                              meals.isEmpty
-                                  ? 'No meals generated yet'
-                                  : '${meals.length} meals',
-                              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                            ),
-                          ],
-                        ),
-                        if (meals.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.download_rounded, color: AppColors.accent),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => ShoppingListModal(meals: meals),
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: meals.isEmpty
-                      ? Center(
-                          child: GlassCard(
-                            blur: 10,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.restaurant_menu, size: 64, color: AppColors.textSecondary),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No Meals Yet',
-                                  style: AppTextStyles.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Generate a meal plan to get started',
-                                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: meals.length,
-                          itemBuilder: (context, index) {
-                            return MealCard(
-                              meal: meals[index],
-                            );
-                          },
-                        ),
-                ),
-              ],
-            );
-          },
+              // Use accumulated meals for history mode
+              final meals = _allMeals.isNotEmpty ? _allMeals : suggestedMeals;
+              
+              return _buildMealsList(
+                meals: meals,
+                title: 'Meal History',
+                isPaginated: true,
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+            error: (error, stack) {
+              // On error, fallback to suggested meals
+              return _buildMealsList(
+                meals: suggestedMeals,
+                title: 'Suggested Meals',
+                isPaginated: false,
+              );
+            },
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMealsList({
+    required List<Meal> meals,
+    required String title,
+    required bool isPaginated,
+  }) {
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: GlassCard(
+            blur: 10,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.titleLarge,
+                    ),
+                    Text(
+                      meals.isEmpty
+                          ? 'No meals generated yet'
+                          : '${meals.length} meals${isPaginated && _hasMorePages ? '+' : ''}',
+                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+                if (meals.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.download_rounded, color: AppColors.accent),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => ShoppingListModal(meals: meals),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: meals.isEmpty
+              ? Center(
+                  child: GlassCard(
+                    blur: 10,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.restaurant_menu, size: 64, color: AppColors.textSecondary),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No Meals Yet',
+                          style: AppTextStyles.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Generate a meal plan to get started',
+                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  controller: isPaginated ? _scrollController : null,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: meals.length + (isPaginated && _isLoadingMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == meals.length) {
+                      // Loading indicator at bottom
+                      return const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      );
+                    }
+                    return MealCard(
+                      meal: meals[index],
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }
