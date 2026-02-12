@@ -56,6 +56,11 @@ class _MealDetailsScreenState extends ConsumerState<MealDetailsScreen> {
     );
 
     if (mounted) {
+      if (success) {
+        // Invalidate meal history provider to force refresh with updated data
+        ref.invalidate(mealHistoryProvider);
+      }
+      
       _showSnackBar(
         success ? 'Meal updated successfully!' : 'Failed to update meal',
         isError: !success,

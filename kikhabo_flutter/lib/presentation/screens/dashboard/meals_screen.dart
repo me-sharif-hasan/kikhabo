@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/shopping_list_pdf_generator.dart';
 import '../../../data/models/meal.dart';
 import '../../../domain/providers/meal_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/meal_card.dart';
-import '../../widgets/shopping_list_modal.dart';
 
 class MealsScreen extends ConsumerStatefulWidget {
   const MealsScreen({super.key});
@@ -22,6 +22,7 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
   int _currentPage = 0;
   bool _isLoadingMore = false;
   bool _hasMorePages = true;
+  bool _isDownloadingPdf = false;
 
   @override
   void initState() {
@@ -103,6 +104,43 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
+  Future<void> _downloadShoppingListPdf(List<Meal> meals) async {
+    setState(() {
+      _isDownloadingPdf = true;
+    });
+
+    try {
+      final file = await ShoppingListPdfGenerator.generateShoppingListPdf(meals);
+      
+      if (file == null) return;
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Shopping list saved to: ${file.path}'),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate PDF: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloadingPdf = false;
+        });
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final isSuggested = _isSuggestedMode(context);
@@ -207,13 +245,18 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
                 ),
                 if (meals.isNotEmpty)
                   IconButton(
-                    icon: const Icon(Icons.download_rounded, color: AppColors.accent),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => ShoppingListModal(meals: meals),
-                      );
-                    },
+                    icon: _isDownloadingPdf
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.accent,
+                            ),
+                          )
+                        : const Icon(Icons.picture_as_pdf, color: AppColors.accent),
+                    onPressed: _isDownloadingPdf ? null : () => _downloadShoppingListPdf(meals),
+                    tooltip: 'Download Shopping List PDF',
                   ),
               ],
             ),

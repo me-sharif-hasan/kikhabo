@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'domain/providers/auth_provider.dart';
+import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/auth/registration_screen.dart';
 import 'presentation/screens/dashboard/dashboard_screen.dart';
@@ -39,25 +40,13 @@ class _KikhaboAppState extends ConsumerState<KikhaboApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch auth state to redirect if needed
-    final authState = ref.watch(authProvider);
-
     final router = GoRouter(
-      initialLocation: '/',
-      redirect: (context, state) {
-        final isLoggedIn = authState.isAuthenticated;
-        final isLoggingIn = state.uri.toString() == '/';
-        final isRegistering = state.uri.toString() == '/register';
-
-        if (!isLoggedIn && !isLoggingIn && !isRegistering) {
-          return '/';
-        }
-        if (isLoggedIn && isLoggingIn) {
-          return '/dashboard/home';
-        }
-        return null;
-      },
+      initialLocation: '/splash',
       routes: [
+        GoRoute(
+          path: '/splash',
+          builder: (context, state) => const SplashScreen(),
+        ),
         GoRoute(
           path: '/',
           builder: (context, state) => const LoginScreen(),

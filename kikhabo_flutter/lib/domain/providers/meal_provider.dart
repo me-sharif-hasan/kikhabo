@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/services/cache_service.dart';
 import '../../data/datasources/meal_datasource.dart';
 import '../../data/models/meal.dart';
 import '../../data/repositories/meal_repository.dart';
@@ -10,10 +11,16 @@ final mealDataSourceProvider = Provider<MealDataSource>((ref) {
   return MealDataSource(dio);
 });
 
+/// Provider for CacheService
+final cacheServiceProvider = Provider<CacheService>((ref) {
+  return CacheService();
+});
+
 /// Provider for MealRepository
 final mealRepositoryProvider = Provider<MealRepository>((ref) {
   final dataSource = ref.watch(mealDataSourceProvider);
-  return MealRepository(dataSource);
+  final cacheService = ref.watch(cacheServiceProvider);
+  return MealRepository(dataSource, cacheService);
 });
 
 /// State class for meal planning
