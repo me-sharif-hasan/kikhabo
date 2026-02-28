@@ -1,8 +1,10 @@
 package com.iishanto.kikhabo.web.controller.v1;
 
 import com.iishanto.kikhabo.domain.entities.meal.MealHistory;
+import com.iishanto.kikhabo.domain.usercase.meal.GetMealDetailsBatchUseCase;
 import com.iishanto.kikhabo.domain.usercase.meal.GetMealHistoryUseCase;
 import com.iishanto.kikhabo.domain.usercase.meal.MealHistoryUpdateUserCase;
+import com.iishanto.kikhabo.web.dto.meal.MealDetailDto;
 import com.iishanto.kikhabo.web.dto.meal.MealHistoryDto;
 import com.iishanto.kikhabo.web.dto.meal.MealRatingStatusDto;
 import com.iishanto.kikhabo.web.dto.meal.PagedMealHistoryResponse;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class MealHistoryController {
         MealHistoryUpdateUserCase mealHistoryUpdateUserCase;
         GetMealHistoryUseCase getMealHistoryUseCase;
+        GetMealDetailsBatchUseCase getMealDetailsBatchUseCase;
 
         @GetMapping
         public ResponseEntity<SuccessResponse<PagedMealHistoryResponse>> getMealHistory(
@@ -46,6 +49,18 @@ public class MealHistoryController {
                                 .build();
 
                 return new ResponseEntity<>(new SuccessResponse<>("success", "Meal history retrieved", response),
+                                HttpStatus.OK);
+        }
+
+        @PostMapping("details")
+        public ResponseEntity<SuccessResponse<List<MealDetailDto>>> getMealDetails(
+                        @RequestBody List<Long> mealHistoryIds) {
+                List<MealDetailDto> result = getMealDetailsBatchUseCase.execute(mealHistoryIds)
+                                .stream()
+                                .map(MealDetailDto::fromDomain)
+                                .collect(Collectors.toList());
+                return new ResponseEntity<>(
+                                new SuccessResponse<>("success", "Meal details retrieved", result),
                                 HttpStatus.OK);
         }
 

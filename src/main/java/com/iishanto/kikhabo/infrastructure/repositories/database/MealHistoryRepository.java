@@ -21,6 +21,10 @@ public interface MealHistoryRepository extends JpaRepository<MealHistoryEntity, 
         @Query("SELECT mh FROM MealHistoryEntity mh WHERE mh.user.id = :userId ORDER BY mh.timestamp DESC")
         Page<MealHistoryEntity> findAllByUserIdOrderByTimestampDesc(@Param("userId") Long userId, Pageable pageable);
 
+        // Batch fetch by IDs scoped to a user
+        @Query("SELECT mh FROM MealHistoryEntity mh WHERE mh.id IN :ids AND mh.user.id = :userId")
+        List<MealHistoryEntity> findAllByIdInAndUserId(@Param("ids") List<Long> ids, @Param("userId") Long userId);
+
         // Analytics Queries - Energy
         @Query(value = "SELECT DATE(FROM_UNIXTIME(mh.timestamp/1000)) as date, " +
                         "COALESCE(SUM(m.total_energy), 0) as totalEnergy " +
