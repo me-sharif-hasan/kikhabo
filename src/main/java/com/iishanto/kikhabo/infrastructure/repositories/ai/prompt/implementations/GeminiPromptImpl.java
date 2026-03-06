@@ -18,13 +18,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.Comparator;
+import java.util.Currency;
 import java.util.List;
+import java.util.Locale;
 
 @AllArgsConstructor
 @Component
 public class GeminiPromptImpl implements PromptProvider {
-    ObjectMapper objectMapper;
     Logger logger;
     UserDataSource userDataSource;
     FamilyDataSource familyDataSource;
@@ -53,7 +54,7 @@ public class GeminiPromptImpl implements PromptProvider {
                                 that suites the weather. The weather information: %s"
                             },
                             {
-                                "text": "Always include the common food for the country. for example, Bangladeshi people almost always take rice with there meals. So, use your commonsense to add something like that."
+                                "text": "Always include the staple/common food for the user's country. For example, Bangladeshi people almost always take rice with their meals, Indians often have roti or rice, etc. Use your knowledge of %s cuisine to add culturally appropriate staples. Respond to the user in %s."
                             },
                             {
                                 "text": "Always considers the preferences. Specially if anyone have diseases and if there is a kid. Always try to give healthiest food possible. Here is the preferences of the family members: %s"
@@ -68,6 +69,8 @@ public class GeminiPromptImpl implements PromptProvider {
                         getUserPrompt(prompt,user),
                         StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", "),
                         weatherDataSource.getWeather(user.getCountry()),
+                        user.getCountry(),
+                        getLanguageForCountry(user.getCountry()),
                         getFamilyPreferences()
         );
         logger.warn(promptString);
@@ -89,48 +92,49 @@ public class GeminiPromptImpl implements PromptProvider {
         return
                 """
                 Generator seed: %d,
-                You are a server who server his response by only JSON. Your role is to generate %d meal suggestion and you must plan the groceries to buy.
-                Here are some specification about the person(s) who will consume your result.
+                You are a server who serves his response using only JSON. Your role is to generate %d meal suggestions and you must plan the groceries to buy.
+                Here are some specifications about the person(s) who will consume your result.
                 Age list of the person(s): %s,
                 Average BMI of the person(s): %s,
-                Spicy rating of the meal: %f,
-                Salt rating of the meal: %f,
-                Budget rating out of 10: %f,
-                Current season: its %s of %s, so whatever season this is,
-                Country of origin: %s
-                
-                Also consider preferences of the family members
-                
-                Always remember to provide meals according to religion. Ex. Muslims do not eat pork, Hindus do not eat cows. For your information, religion of the user is %s.
-                
-                You must follow this JSON schema structure inorder to be successfully parsed by mobile client
+                Spicy rating of the meal (1–10, higher means spicier): %f,
+                Salt rating of the meal (1–10, higher means saltier): %f,
+                Budget level: %s,
+                Current season: it is %s of %s, so factor in seasonal ingredient availability,
+                Country of origin: %s,
+                Language to respond meal names and notes in: %s
+
+                Also consider preferences of the family members.
+
+                Always remember to provide meals according to religion. Ex. Muslims do not eat pork, Hindus do not eat beef. For your information, the religion of the user is %s.
+
+                You must follow this JSON schema structure in order to be successfully parsed by the mobile client:
                         {
                                             status:<response status, success|error>,
                                             message:<status message>,
                                             data:{
-                                            totalMeals:<the number of meal to generate>,
+                                            totalMeals:<the number of meals to generate>,
                                                 meals:[
                                                     {
                                                         mealName:<name of the meal>,
-                                                        totalEnergy:<total energy in kilocalorie| in float, this field is must>,
-                                                        note:<if any disclaimer needed to be maintained>,
-                                                        ingredients:<comma seperated list of ingredients>,
+                                                        totalEnergy:<total energy in kilocalorie| in float, this field is required>,
+                                                        note:<any disclaimer or preparation note, keep empty if not necessary>,
+                                                        ingredients:<comma separated list of ingredients>,
                                                         groceries:[
                                                              {
                                                                  name:<name of the grocery item>,
-                                                                 priceRatingOutOf10:<price rating>,
-                                                                 amountInGm:<how much to buy>
+                                                                 priceRatingOutOf10:<price rating out of 10>,
+                                                                 amountInGm:<how much to buy in grams>
                                                              },
                                                              <list of remaining groceries>
                                                         ]
                                                     },
-                                                    <list of remaining meal>
+                                                    <list of remaining meals>
                                                 ]
                                             }
                                         }
-                The json should be a valid json and strings and keys should be quoted. Also, randomize meal in each request. Consider the generator seed in this case. Also keep the note empty if not that necessary.
-                One last request, please don't make the suggestion boring and only suggest foods that bangladeshi peoples eat day by day and affordable according to price rating. For your use, here are the last %d meal list:
-                %s. Also you don't have to say too much, just mention the names and give consistent sentences.
+                The JSON must be valid and all strings and keys must be quoted. Randomize the meal selection in each request using the generator seed. Keep notes empty if not necessary.
+                Do not make the suggestion boring. Only suggest foods that people from %s actually eat day to day, that are culturally appropriate and affordable within the given budget. Here are the last %d meals already eaten:
+                %s. Be concise — just mention names and give short, consistent sentences.
                 """.formatted(
                         System.currentTimeMillis(),
                         getMealCount(preference,prompt),
@@ -138,11 +142,13 @@ public class GeminiPromptImpl implements PromptProvider {
                         getCommaSeperatedBmiList(),
                         getSpicyRating(preference,prompt) /*Spicy rating*/,
                         getSaltRating(preference,prompt) /*Salt rating of the meal*/,
-                        getPriceRating(preference,prompt) /*Budget rating*/,
+                        getBudgetDescription(getPriceRating(preference,prompt), user.getCountry()) /*Budget with currency*/,
                         getMonthName(Calendar.getInstance().get(Calendar.MONTH)),
                         user.getCountry(),
                         user.getCountry() /*Country*/,
+                        getLanguageForCountry(user.getCountry()) /*Language*/,
                         user.getReligion(),
+                        user.getCountry() /*country for food culture*/,
                         prompt.getLastMealRecord().size(),
                         StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", ")
                 );
@@ -211,6 +217,44 @@ public class GeminiPromptImpl implements PromptProvider {
     private String getMonthName(int index){
         String []months=new String[]{"January","February","March","April","May","June","July","August","September","October","November","December"};
         return months[index];
+    }
+
+    private String getLanguageForCountry(String country) {
+        if (country == null) return "English";
+        return Locale.availableLocales()
+                .filter(l -> !l.getLanguage().isEmpty() && !l.getCountry().isEmpty())
+                .filter(l -> l.getDisplayCountry(Locale.ENGLISH).equalsIgnoreCase(country.trim()))
+                // prefer non-English locale so we get the native language name
+                .min(Comparator.comparingInt(l -> l.getLanguage().equals("en") ? 1 : 0))
+                .map(l -> l.getDisplayLanguage(Locale.ENGLISH))
+                .orElse("English");
+    }
+
+    private String getCurrencyForCountry(String country) {
+        if (country == null) return "USD";
+        return Locale.availableLocales()
+                .filter(l -> !l.getCountry().isEmpty())
+                .filter(l -> l.getDisplayCountry(Locale.ENGLISH).equalsIgnoreCase(country.trim()))
+                .findFirst()
+                .map(l -> {
+                    try { return Currency.getInstance(l).getCurrencyCode(); }
+                    catch (Exception e) { return "USD"; }
+                })
+                .orElse("USD");
+    }
+
+    private String getBudgetDescription(float rating, String country) {
+        String currency = getCurrencyForCountry(country);
+        boolean isBangladesh = country != null && country.equalsIgnoreCase("bangladesh");
+        if (isBangladesh) {
+            if (rating <= 3) return String.format("low (100–300 %s per meal)", currency);
+            if (rating <= 7) return String.format("medium (301–700 %s per meal)", currency);
+            return String.format("high (up to 4000 %s per meal)", currency);
+        }
+        // For other countries instruct AI to apply local cost knowledge for the budget tier
+        if (rating <= 3) return String.format("low budget — affordable street food / home-cooked level in %s (%s)", country, currency);
+        if (rating <= 7) return String.format("medium budget — mid-range local food level in %s (%s)", country, currency);
+        return String.format("high budget — premium dining level in %s (%s)", country, currency);
     }
 
 }

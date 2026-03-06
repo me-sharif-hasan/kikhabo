@@ -11,6 +11,9 @@ public class UserUpdateDto{
     public String country;
     public String gender;
     public String dateOfBirth;
+    public Float weightInKg;
+    public Float heightInFt;
+    public String religion;
     public User toDomain(){
         return User.builder()
                 .email(email)
@@ -18,6 +21,10 @@ public class UserUpdateDto{
                 .lastName(lastName)
                 .country(country)
                 .gender(gender)
-                .dateOfBirth(dateOfBirth).build();
+                .dateOfBirth(dateOfBirth)
+                .weightInKg(weightInKg)
+                .heightInFt(heightInFt)
+                .religion(religion)
+                .build();
     }
 }
