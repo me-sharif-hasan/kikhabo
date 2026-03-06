@@ -1,11 +1,9 @@
 package com.iishanto.kikhabo.infrastructure.data;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iishanto.kikhabo.domain.datasource.MealDataSource;
 import com.iishanto.kikhabo.domain.datasource.UserDataSource;
 import com.iishanto.kikhabo.domain.entities.meal.Meal;
 import com.iishanto.kikhabo.domain.entities.meal.MealHistory;
-import com.iishanto.kikhabo.domain.entities.people.User;
 import com.iishanto.kikhabo.infrastructure.model.GroceryEntity;
 import com.iishanto.kikhabo.infrastructure.model.MealEntity;
 import com.iishanto.kikhabo.infrastructure.model.MealHistoryEntity;
@@ -27,7 +25,6 @@ public class MealDataSourceImpl implements MealDataSource {
     MealRepository mealRepository;
     UserDataSource userDataSource;
     UserRepository userRepository;
-    ObjectMapper objectMapper;
     MealHistoryRepository mealHistoryRepository;
     Logger logger;
 
@@ -45,32 +42,32 @@ public class MealDataSourceImpl implements MealDataSource {
         meals.forEach(meal -> {
             MealHistoryEntity mealHistoryEntity=new MealHistoryEntity();
             MealEntity mealEntity=MealEntity.fromDomain(meal);
+            mealEntity= mealRepository.save(mealEntity);
+            meal.setId(mealEntity.getId());
             mealHistoryEntity.setMealEntity(mealEntity);
             mealHistoryEntity.setTimestamp(System.currentTimeMillis());
+            mealHistoryEntity.setMealStatus("PENDING");
             mealHistoryEntity.setGroceries(meal.getGroceries().stream().map(GroceryEntity::fromDomain).toList());
             mealHistoryEntity.setUser(user);
             mealHistoryEntity.setGroupId(groupId);
-            mealEntity= mealRepository.save(mealEntity);
-            meal.setId(mealEntity.getId());
             mealHistoryEntities.add(mealHistoryEntity);
         });
-        user.setMealHistories(mealHistoryEntities);
-        userRepository.save(user);
+        mealHistoryRepository.saveAll(mealHistoryEntities);
     }
 
     @Override
     public List<Meal> getLastMeals(int limit) {
-        User user =userDataSource.getAuthenticatedUser();
-        UserEntity userEntity=objectMapper.convertValue(user,UserEntity.class);
-        return getMealsForUid(userEntity,limit);
+        Long userId = userDataSource.getAuthenticatedUser().getId();
+        return getMealsForUid(userId, limit);
     }
 
     @Override
     public boolean update(MealHistory mealHistory) {
         try{
+            Long currentUserId = userDataSource.getAuthenticatedUser().getId();
             Long id=mealHistory.getId();
             MealHistoryEntity mealHistoryEntity=mealHistoryRepository.findById(id).orElse(null);
-            if (mealHistoryEntity!=null){
+            if (mealHistoryEntity != null && mealHistoryEntity.getUser().getId().equals(currentUserId)){
                 mealHistoryEntity.setRating(mealHistory.getRating());
                 mealHistoryEntity.setUserNote(mealHistory.getUserNote());
                 mealHistoryEntity.setMealStatus(mealHistory.getMealStatus());
@@ -83,8 +80,8 @@ public class MealDataSourceImpl implements MealDataSource {
         return false;
     }
 
-    private List<Meal> getMealsForUid(UserEntity user, int limit) {
-        List<MealHistoryEntity> mealHistoryEntities = mealHistoryRepository.findAllByUserOrderByTimestampDesc(user.getId(),limit);
+    private List<Meal> getMealsForUid(Long userId, int limit) {
+        List<MealHistoryEntity> mealHistoryEntities = mealHistoryRepository.findAllByUserOrderByTimestampDesc(userId, limit);
         logger.info("MealHistoriesFetched. Total history {}",mealHistoryEntities.size());
         return mealHistoryEntities.stream().map(mealHistoryEntity -> mealHistoryEntity.getMealEntity().toDomain()).toList();
     }
