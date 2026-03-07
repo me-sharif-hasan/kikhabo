@@ -6,6 +6,7 @@ import com.iishanto.kikhabo.domain.entities.people.Credentials;
 import com.iishanto.kikhabo.domain.entities.people.User;
 import com.iishanto.kikhabo.domain.usercase.user.*;
 import com.iishanto.kikhabo.domain.usercase.user.command.out.GetUserResponse;
+import com.iishanto.kikhabo.infrastructure.services.storage.S3Service;
 import com.iishanto.kikhabo.web.dto.user.CredentialsDto;
 import com.iishanto.kikhabo.web.dto.user.LoginResponseDto;
 import com.iishanto.kikhabo.web.dto.user.UserDto;
@@ -17,8 +18,10 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,6 +36,7 @@ public class UserController {
     WeatherDataSource weatherDataSource;
     GetUserUseCase getUserUseCase;
     UserSearchUseCase userSearchUseCase;
+    S3Service s3Service;
     Logger logger;
 
     @SecurityRequirements
@@ -61,6 +65,16 @@ public class UserController {
     public ResponseEntity<User> update(@Valid @RequestBody UserUpdateDto user) throws Exception {
         User domainUser=user.toDomain();
         return new ResponseEntity<>(userUpdateUseCase.execute(domainUser),HttpStatus.OK);
+    }
+
+    @PostMapping(value = "profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SuccessResponse<String>> uploadProfileImage(
+            @RequestParam("file") MultipartFile file) throws Exception {
+        if (file.isEmpty()) throw new IllegalArgumentException("File must not be empty");
+        if (file.getSize() > 5 * 1024 * 1024) throw new IllegalArgumentException("File size must not exceed 5MB");
+        String imageUrl = s3Service.uploadFile(file, "profile-images");
+        userUpdateUseCase.execute(User.builder().profileImageUrl(imageUrl).build());
+        return new ResponseEntity<>(new SuccessResponse<>("success", "Profile image uploaded", imageUrl), HttpStatus.OK);
     }
 
     @GetMapping("current-user")

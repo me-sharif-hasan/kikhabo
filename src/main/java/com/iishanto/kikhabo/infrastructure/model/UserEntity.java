@@ -48,6 +48,8 @@ public class UserEntity {
 
     private String religion;
 
+    private String profileImageUrl;
+
     private String dateOfBirth;
     private Float weightInKg;
     private Float heightInFt;
@@ -85,6 +87,7 @@ public class UserEntity {
         userDomain.setWeightInKg(weightInKg);
         userDomain.setHeightInFt(heightInFt);
         userDomain.setReligion(religion);
+        userDomain.setProfileImageUrl(profileImageUrl);
         if(preference!=null) userDomain.setPreference(preference.toDomain());
         return userDomain;
     }
@@ -100,5 +103,6 @@ public class UserEntity {
         if(user.getWeightInKg()!=null) weightInKg=user.getWeightInKg();
         if(user.getHeightInFt()!=null) heightInFt=user.getHeightInFt();
         if(user.getReligion()!=null) religion=user.getReligion();
+        if(user.getProfileImageUrl()!=null) profileImageUrl=user.getProfileImageUrl();
     }
 }

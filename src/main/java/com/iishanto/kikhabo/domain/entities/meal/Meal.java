@@ -19,4 +19,5 @@ public class Meal extends SchemaEntity{
     String note;
     String ingredients;
     List<Grocery> groceries;
+    List<String> youtubeSearchTerms;
 }

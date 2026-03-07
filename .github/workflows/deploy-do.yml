@@ -41,6 +41,10 @@ jobs:
           spring.datasource.username=${{ secrets.DB_USER }}
           spring.datasource.password=${{ secrets.DB_PASS }}
           kikhabo.security.jwt-secret=${{ secrets.JWT_SECRET }}
+          aws.s3.bucket-name=${{ secrets.S3_AWS_BUCKET }}
+          aws.s3.region=${{ secrets.S3_AWS_REGION }}
+          aws.s3.access-key=${{ secrets.S3_ACCESS_KEY }}
+          aws.s3.secret-key=${{ secrets.S3_SECRET_ACCESS_TOKEN }}
           EOT
 
           cat src/main/resources/application-prod.properties
@@ -102,4 +106,8 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          S3_AWS_BUCKET: ${{ secrets.S3_AWS_BUCKET }}
+          S3_AWS_REGION: ${{ secrets.S3_AWS_REGION }}
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_ACCESS_TOKEN: ${{ secrets.S3_SECRET_ACCESS_TOKEN }}
 

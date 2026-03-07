@@ -119,6 +119,7 @@ public class GeminiPromptImpl implements PromptProvider {
                                                         totalEnergy:<total energy in kilocalorie| in float, this field is required>,
                                                         note:<any disclaimer or preparation note, keep empty if not necessary>,
                                                         ingredients:<comma separated list of ingredients>,
+                                                        youtubeSearchTerms:[<array of 2-3 YouTube search query strings to find cooking tutorials for this meal's key components>],
                                                         groceries:[
                                                              {
                                                                  name:<name of the grocery item>,

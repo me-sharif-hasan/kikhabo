@@ -31,6 +31,7 @@ public class User {
     private Float weightInKg;
     private Float heightInFt;
     private String religion;
+    private String profileImageUrl;
     private List<MealHistory> mealHistories;
     private Preference preference;
 
