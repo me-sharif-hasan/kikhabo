@@ -21,6 +21,7 @@ public class GetUserResponse {
     private Float weightInKg;
     private Float heightInFt;
     private String religion;
+    private String profileImageUrl;
     private Preference preference;
 
     public static GetUserResponse fromDomain(User user){
@@ -36,6 +37,7 @@ public class GetUserResponse {
                 .weightInKg(user.getWeightInKg())
                 .heightInFt(user.getHeightInFt())
                 .religion(user.getReligion())
+                .profileImageUrl(user.getProfileImageUrl())
                 .preference(user.getPreference())
                 .build();
     }

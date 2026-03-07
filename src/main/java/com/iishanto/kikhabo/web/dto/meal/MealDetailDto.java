@@ -21,6 +21,7 @@ public class MealDetailDto {
     private String note;
     private String ingredients;
     private List<GroceryDetailDto> groceries;
+    private List<String> youtubeSearchTerms;
     private Long timestamp;
     private Float rating;
     private String userNote;
@@ -38,6 +39,7 @@ public class MealDetailDto {
                                 .map(GroceryDetailDto::fromDomain)
                                 .collect(Collectors.toList())
                         : null)
+                .youtubeSearchTerms(mealHistory.getMeal() != null ? mealHistory.getMeal().getYoutubeSearchTerms() : null)
                 .timestamp(mealHistory.getTimestamp())
                 .rating(mealHistory.getRating())
                 .userNote(mealHistory.getUserNote())
