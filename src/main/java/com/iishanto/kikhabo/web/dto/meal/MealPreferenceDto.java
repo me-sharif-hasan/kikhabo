@@ -3,13 +3,12 @@ package com.iishanto.kikhabo.web.dto.meal;
 import com.iishanto.kikhabo.domain.entities.text.MealPreferenceData;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,8 +33,16 @@ public class MealPreferenceDto {
     @Min(1)
     private Integer mealPerDay;
     private List<Float> agesOfTheMembers;
+    private List<AvailableIngredientDto> availableIngredients;
 
-    public MealPreferenceData toDomain(){
-        return new MealPreferenceData(spicyRating,saltRating,dayCount,priceRating,totalMealCount,agesOfTheMembers,mealPerDay);
+    public MealPreferenceData toDomain() {
+        List<com.iishanto.kikhabo.domain.entities.meal.AvailableIngredient> domainIngredients =
+                availableIngredients == null ? null :
+                availableIngredients.stream()
+                        .filter(Objects::nonNull)
+                        .map(AvailableIngredientDto::toDomain)
+                        .toList();
+        return new MealPreferenceData(spicyRating, saltRating, dayCount, priceRating,
+                totalMealCount, agesOfTheMembers, mealPerDay, domainIngredients);
     }
 }

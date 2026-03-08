@@ -5,6 +5,7 @@ import com.iishanto.kikhabo.domain.datasource.FamilyDataSource;
 import com.iishanto.kikhabo.domain.datasource.PreferenceDataSource;
 import com.iishanto.kikhabo.domain.datasource.UserDataSource;
 import com.iishanto.kikhabo.domain.datasource.WeatherDataSource;
+import com.iishanto.kikhabo.domain.entities.meal.AvailableIngredient;
 import com.iishanto.kikhabo.domain.entities.meal.Meal;
 import com.iishanto.kikhabo.domain.entities.people.Preference;
 import com.iishanto.kikhabo.domain.entities.people.User;
@@ -58,6 +59,9 @@ public class GeminiPromptImpl implements PromptProvider {
                             },
                             {
                                 "text": "Always considers the preferences. Specially if anyone have diseases and if there is a kid. Always try to give healthiest food possible. Here is the preferences of the family members: %s"
+                            },
+                            {
+                                "text": "%s"
                             }
                         ]
                     }],
@@ -71,7 +75,8 @@ public class GeminiPromptImpl implements PromptProvider {
                         weatherDataSource.getWeather(user.getCountry()),
                         user.getCountry(),
                         getLanguageForCountry(user.getCountry()),
-                        getFamilyPreferences()
+                        getFamilyPreferences(),
+                        getAvailableIngredientsText(prompt)
         );
         logger.warn(promptString);
         return promptString;
@@ -153,6 +158,27 @@ public class GeminiPromptImpl implements PromptProvider {
                         prompt.getLastMealRecord().size(),
                         StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", ")
                 );
+    }
+
+    private String getAvailableIngredientsText(Prompt prompt) {
+        List<AvailableIngredient> ingredients = prompt.getMealPreferenceData().getAvailableIngredients();
+        if (ingredients == null || ingredients.isEmpty()) {
+            return "The user has not specified any ingredients they already have at home.";
+        }
+        String list = ingredients.stream()
+                .filter(i -> i != null && i.getName() != null && !i.getName().isBlank())
+                .map(i -> {
+                    String qty = (i.getQuantity() == null || i.getQuantity().isBlank()) ? "unspecified amount" : i.getQuantity();
+                    return i.getName() + " (" + qty + ")";
+                })
+                .collect(java.util.stream.Collectors.joining(", "));
+        if (list.isBlank()) {
+            return "The user has not specified any ingredients they already have at home.";
+        }
+        return "The user already has these ingredients at home: " + list + ". " +
+                "Prioritize building meals around these to avoid waste and save money. " +
+                "For each suggested meal, try to incorporate as many of these available ingredients as possible. " +
+                "You may suggest additional groceries to complement them, but keep extra purchases minimal.";
     }
 
     private String getCommaSeperatedBmiList(){

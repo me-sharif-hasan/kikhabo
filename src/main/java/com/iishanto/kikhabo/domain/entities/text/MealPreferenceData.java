@@ -1,6 +1,7 @@
 package com.iishanto.kikhabo.domain.entities.text;
 
 import com.iishanto.kikhabo.domain.entities.common.SchemaEntity;
+import com.iishanto.kikhabo.domain.entities.meal.AvailableIngredient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,4 +21,5 @@ public class MealPreferenceData extends SchemaEntity {
     Integer totalMealCount;
     List<Float> agesOfTheMembers;
     Integer MealPerDay;
+    List<AvailableIngredient> availableIngredients;
 }
