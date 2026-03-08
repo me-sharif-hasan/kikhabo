@@ -37,6 +37,7 @@ jobs:
           cat <<EOT > src/main/resources/application-prod.properties
           openweather.apikey=${{ secrets.OPENWEATHER_APIKEY }}
           google.gemini.apikey=${{ secrets.GEMINI_KEY }}
+          google.gemini.vision.apikey=${{ secrets.GEMINI_VISION_KEY }}
           spring.datasource.url=${{ secrets.DB_URL }}
           spring.datasource.username=${{ secrets.DB_USER }}
           spring.datasource.password=${{ secrets.DB_PASS }}
@@ -102,6 +103,7 @@ jobs:
         env:
           OPENWEATHER_APIKEY: ${{ secrets.OPENWEATHER_APIKEY }}
           GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+          GEMINI_VISION_KEY: ${{ secrets.GEMINI_VISION_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
