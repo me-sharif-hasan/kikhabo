@@ -1,5 +1,6 @@
 package com.iishanto.kikhabo.infrastructure.config;
 
+import com.iishanto.kikhabo.infrastructure.services.security.ApiKeyAuthFilter;
 import com.iishanto.kikhabo.infrastructure.services.security.CorsFilter;
 import com.iishanto.kikhabo.infrastructure.services.security.JwtSecurityFilterChain;
 import com.iishanto.kikhabo.infrastructure.services.security.JwtService;
@@ -42,6 +43,7 @@ public class SecurityConfig {
     Logger logger;
     JwtSecurityFilterChain filterChain;
     CorsFilter corsFilter;
+    ApiKeyAuthFilter apiKeyAuthFilter;
     HandlerExceptionResolver handlerExceptionResolver;
 
     @Bean
@@ -51,6 +53,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req->{
                     req.requestMatchers("/api/v1/user/login","/api/v1/user/register").permitAll();
+                    req.requestMatchers("/api/v1/admin/**").permitAll(); // guarded by ApiKeyAuthFilter
                     req.requestMatchers("/swagger-ui.html").permitAll();
                     req.requestMatchers("/swagger-ui/**").permitAll();
                     req.requestMatchers("/v3/api-docs/**").permitAll();
@@ -59,6 +62,7 @@ public class SecurityConfig {
                 })
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(filterChain, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
                 .exceptionHandling(
                         httpSecurityExceptionHandlingConfigurer -> {

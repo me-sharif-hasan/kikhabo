@@ -24,12 +24,12 @@ jobs:
       - name: Create credentials file
         run: |
           mkdir -p src/main/resources/credentials
-          echo "${{ secrets.BACKEND_GOOGLE_SERVICES_BASE64 }}" | base64 -d > src/main/resources/credentials/kikhabo-service-account.json
+          echo "${{ secrets.BACKEND_GOOGLE_SERVICES_BASE64 }}" | base64 -d > src/main/resources/google-service.json
         continue-on-error: false
 
       - name: Validate credentials file
         run: |
-          jq . src/main/resources/credentials/kikhabo-service-account.json > /dev/null || { echo "Invalid JSON in credentials"; exit 1; }
+          jq . src/main/resources/google-service.json > /dev/null || { echo "Invalid JSON in credentials"; exit 1; }
 
       - name: Create application-prod.properties
         run: |
@@ -46,6 +46,8 @@ jobs:
           aws.s3.region=${{ secrets.S3_AWS_REGION }}
           aws.s3.access-key=${{ secrets.S3_ACCESS_KEY }}
           aws.s3.secret-key=${{ secrets.S3_SECRET_ACCESS_TOKEN }}
+          google.firebase.project-id=${{ secrets.FIREBASE_PROJECT_ID }}
+          kikhabo.admin.api-key=${{ secrets.ADMIN_API_KEY }}
           EOT
 
           cat src/main/resources/application-prod.properties
@@ -112,4 +114,6 @@ jobs:
           S3_AWS_REGION: ${{ secrets.S3_AWS_REGION }}
           S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
           S3_SECRET_ACCESS_TOKEN: ${{ secrets.S3_SECRET_ACCESS_TOKEN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
 
