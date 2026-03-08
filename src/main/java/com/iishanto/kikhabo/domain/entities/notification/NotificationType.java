@@ -36,4 +36,11 @@ public enum NotificationType {
     public String getDefaultRoute() {
         return defaultRoute;
     }
+
+    public static NotificationType fromValue(String value) {
+        for (NotificationType type : values()) {
+            if (type.value.equals(value)) return type;
+        }
+        throw new IllegalArgumentException("Unknown NotificationType value: " + value);
+    }
 }

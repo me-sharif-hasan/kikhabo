@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Jui/.m2/repository/com/google/firebase/firebase-admin/9.3.0/**)",
+      "Bash(jar tf firebase-admin-9.3.0.jar)",
+      "Bash(\"/c/Users/Jui/.jdks/ms-21.0.9/bin/jar.exe\" tf:*)",
+      "Bash(\"/c/Users/Jui/.jdks/ms-21.0.9/bin/javap.exe\":*)"
+    ]
+  }
+}
