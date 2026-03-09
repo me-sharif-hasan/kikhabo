@@ -52,7 +52,7 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req->{
-                    req.requestMatchers("/api/v1/user/login","/api/v1/user/register").permitAll();
+                    req.requestMatchers("/api/v1/user/login","/api/v1/user/register","/api/v1/user/social-login").permitAll();
                     req.requestMatchers("/api/v1/admin/**").permitAll(); // guarded by ApiKeyAuthFilter
                     req.requestMatchers("/swagger-ui.html").permitAll();
                     req.requestMatchers("/swagger-ui/**").permitAll();

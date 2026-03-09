@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iishanto.kikhabo.domain.entities.people.AuthProvider;
 import com.iishanto.kikhabo.domain.entities.people.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -13,8 +14,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.annotation.Lazy;
 
 import java.util.List;
 import java.util.UUID;
@@ -34,17 +33,17 @@ public class UserEntity {
     @Email
     @Column(unique = true)
     private String email;
-    @NotEmpty
-    @Length(min = 8)
     private String password;
-    @NotEmpty
     private String firstName;
-    @NotEmpty
     private String lastName;
-    @NotEmpty
     private String gender;
-    @NotEmpty
     private String country;
+
+    /** Which provider authenticated this user (EMAIL_PASSWORD, GOOGLE, etc.) */
+    private String authProvider;
+
+    /** Provider-specific unique user ID (e.g. Firebase UID for GOOGLE/FACEBOOK/PHONE_OTP) */
+    private String externalId;
 
     private String religion;
 

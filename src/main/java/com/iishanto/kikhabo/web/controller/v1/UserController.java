@@ -9,6 +9,7 @@ import com.iishanto.kikhabo.domain.usercase.user.command.out.GetUserResponse;
 import com.iishanto.kikhabo.infrastructure.services.storage.S3Service;
 import com.iishanto.kikhabo.web.dto.user.CredentialsDto;
 import com.iishanto.kikhabo.web.dto.user.LoginResponseDto;
+import com.iishanto.kikhabo.web.dto.user.SocialAuthDto;
 import com.iishanto.kikhabo.web.dto.user.UserDto;
 import com.iishanto.kikhabo.web.dto.user.UserUpdateDto;
 import com.iishanto.kikhabo.web.response.SuccessResponse;
@@ -32,6 +33,7 @@ import java.util.List;
 public class UserController {
     UserRegistrationUseCase userRegistrationUseCase;
     UserLoginUseCase userLoginUseCase;
+    SocialLoginUseCase socialLoginUseCase;
     UserUpdateUseCase userUpdateUseCase;
     WeatherDataSource weatherDataSource;
     GetUserUseCase getUserUseCase;
@@ -59,6 +61,13 @@ public class UserController {
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody CredentialsDto credentialsDto) throws Exception {
         Credentials response=userLoginUseCase.execute(credentialsDto.toDomain());
         return new ResponseEntity<>(LoginResponseDto.fromCredential(response),HttpStatus.OK);
+    }
+
+    @SecurityRequirements
+    @PostMapping("social-login")
+    public ResponseEntity<LoginResponseDto> socialLogin(@Valid @RequestBody SocialAuthDto socialAuthDto) throws Exception {
+        Credentials response = socialLoginUseCase.execute(socialAuthDto.toDomain());
+        return new ResponseEntity<>(LoginResponseDto.fromCredential(response), HttpStatus.OK);
     }
 
     @PutMapping("update")

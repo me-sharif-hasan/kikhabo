@@ -35,6 +35,18 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateTokenForEmail(String email) {
+        Date today = new Date();
+        Date expireDate = new Date(today.getTime() + jwtExpiration);
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuer("JWT Service")
+                .setIssuedAt(today)
+                .setExpiration(expireDate)
+                .signWith(secretKey)
+                .compact();
+    }
+
     public String getUserEmailFromToken(String jwtToken) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
