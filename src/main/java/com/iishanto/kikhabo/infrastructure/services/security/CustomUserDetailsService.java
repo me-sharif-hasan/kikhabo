@@ -22,6 +22,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 
     private User getUser(UserEntity userEntity){
-        return new User(userEntity.getEmail(), userEntity.getPassword(),new HashSet<>());
+        // Social login users have no password; use empty string as placeholder
+        String password = userEntity.getPassword() != null ? userEntity.getPassword() : "";
+        return new User(userEntity.getEmail(), password, new HashSet<>());
     }
 }

@@ -20,22 +20,6 @@ public class NotificationContentDataSourceImpl implements NotificationContentDat
     private final ObjectMapper objectMapper;
     private final Logger logger;
 
-    @Override
-    public List<NotificationVariant> generateDailyVariants() {
-        String prompt = buildEngagementPrompt();
-        if (prompt == null) {
-            logger.error("[DailyNotification] Failed to build prompt, skipping");
-            return List.of();
-        }
-        logger.info("[DailyNotification] Requesting notification variants from Gemini");
-        String response = chatBotApiService.request(prompt);
-        if (response == null) {
-            logger.error("[DailyNotification] Gemini returned null response, skipping broadcast");
-            return List.of();
-        }
-        return parseVariants(response);
-    }
-
     private String buildEngagementPrompt() {
         try {
             String schema = "{\"variants\":[{\"audience\":\"female\",\"title\":\"<title max 50 chars>\",\"body\":\"<body max 100 chars>\",\"extra\":\"\"},{\"audience\":\"male\",\"title\":\"...\",\"body\":\"...\",\"extra\":\"\"},{\"audience\":\"general\",\"title\":\"...\",\"body\":\"...\",\"extra\":\"\"}]}";
@@ -114,6 +98,81 @@ public class NotificationContentDataSourceImpl implements NotificationContentDat
         }
         return variants;
     }
+
+    // ── Country-specific variant generation ─────────────────────────────────────
+
+    @Override
+    public List<NotificationVariant> generateCountryVariants(String country, String language, String timeSlot, int count) {
+        String prompt = buildCountryPrompt(country, language, timeSlot, count);
+        if (prompt == null) {
+            logger.error("[CountryNotification] Failed to build prompt for country={}", country);
+            return List.of();
+        }
+        logger.info("[CountryNotification] Requesting {} variant(s) for country={} lang={} slot={}", count, country, language, timeSlot);
+        String response = chatBotApiService.request(prompt);
+        if (response == null) {
+            logger.error("[CountryNotification] Gemini returned null response for country={}", country);
+            return List.of();
+        }
+        return parseVariants(response);
+    }
+
+    private String buildCountryPrompt(String country, String language, String timeSlot, int count) {
+        try {
+            // Build schema example with `count` variant slots
+            StringBuilder schemaVariants = new StringBuilder();
+            for (int i = 0; i < count; i++) {
+                if (i > 0) schemaVariants.append(",");
+                schemaVariants.append("{\"audience\":\"general\",\"title\":\"<title max 50 chars>\",\"body\":\"<body max 100 chars>\",\"extra\":\"\"}");
+            }
+            String schema = "{\"variants\":[" + schemaVariants + "]}";
+
+            String safeSlot = (timeSlot != null) ? timeSlot : "meal";
+            String nutritionHint = switch (safeSlot) {
+                case "breakfast" -> "morning breakfast nutrition — e.g. protein, fibre, energy to start the day";
+                case "lunch"     -> "midday lunch nutrition — e.g. balanced macros, hydration, brain fuel";
+                default          -> "healthy eating — e.g. balanced macros, vitamins, staying energised through the day";
+            };
+
+            com.fasterxml.jackson.databind.node.ObjectNode root = objectMapper.createObjectNode();
+            com.fasterxml.jackson.databind.node.ArrayNode contents = root.putArray("contents");
+            com.fasterxml.jackson.databind.node.ObjectNode content = contents.addObject();
+            com.fasterxml.jackson.databind.node.ArrayNode parts = content.putArray("parts");
+
+            parts.addObject().put("text",
+                    "You are a witty, culturally-aware mobile app copywriter for Kikhabo, a smart meal planning app. " +
+                    "Your job is to craft funny, friendly push notifications that also sneak in useful nutrition tips. " +
+                    "Write in " + language + " (the primary language of " + country + "). " +
+                    "The tone must be playful and humorous — think of a funny friend who also knows a lot about food. " +
+                    "Culturally relevant jokes or food references from " + country + " are very welcome.");
+
+            parts.addObject().put("text",
+                    "Generate exactly " + count + " push notification variant(s) for the '" + safeSlot + "' time slot. " +
+                    "Each notification MUST: " +
+                    "1) Be written entirely in " + language + ". " +
+                    "2) Include a funny, light-hearted joke or witty remark relevant to " + country + " food culture. " +
+                    "3) Weave in a genuine nutrition fact about " + nutritionHint + ". " +
+                    "4) Encourage the user to open Kikhabo to plan their " + safeSlot + ". " +
+                    "Keep the title under 50 characters and the body under 100 characters.");
+
+            parts.addObject().put("text",
+                    "Generator seed: " + System.currentTimeMillis() + ". Vary the jokes so variants feel distinct.");
+
+            parts.addObject().put("text",
+                    "Respond with ONLY a valid JSON object — no markdown, no extra text. Schema: " + schema);
+
+            com.fasterxml.jackson.databind.node.ObjectNode genConfig = root.putObject("generationConfig");
+            genConfig.put("responseMimeType", "application/json");
+            genConfig.put("temperature", 1.8);
+
+            return objectMapper.writeValueAsString(root);
+        } catch (Exception e) {
+            logger.error("[CountryNotification] Failed to build country prompt: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    // ── Shared helpers ───────────────────────────────────────────────────────────
 
     private String extractTextFromGeminiResponse(JsonNode root) {
         try {

@@ -6,6 +6,7 @@ import com.iishanto.kikhabo.domain.datasource.PreferenceDataSource;
 import com.iishanto.kikhabo.domain.datasource.UserDataSource;
 import com.iishanto.kikhabo.domain.datasource.WeatherDataSource;
 import com.iishanto.kikhabo.domain.entities.meal.AvailableIngredient;
+import com.iishanto.kikhabo.domain.entities.weather.Weather;
 import com.iishanto.kikhabo.domain.entities.meal.Meal;
 import com.iishanto.kikhabo.domain.entities.people.Preference;
 import com.iishanto.kikhabo.domain.entities.people.User;
@@ -55,7 +56,7 @@ public class GeminiPromptImpl implements PromptProvider {
                                 that suites the weather. The weather information: %s"
                             },
                             {
-                                "text": "Always include the staple/common food for the user's country. For example, Bangladeshi people almost always take rice with their meals, Indians often have roti or rice, etc. Use your knowledge of %s cuisine to add culturally appropriate staples. Respond to the user in %s."
+                                "text": "%s"
                             },
                             {
                                 "text": "Always considers the preferences. Specially if anyone have diseases and if there is a kid. Always try to give healthiest food possible. Here is the preferences of the family members: %s"
@@ -72,9 +73,8 @@ public class GeminiPromptImpl implements PromptProvider {
                 """.formatted(
                         getUserPrompt(prompt,user),
                         StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", "),
-                        weatherDataSource.getWeather(user.getCountry()),
-                        user.getCountry(),
-                        getLanguageForCountry(user.getCountry()),
+                        getWeatherContext(user),
+                        getCulturalStapleInstruction(user),
                         getFamilyPreferences(),
                         getAvailableIngredientsText(prompt)
         );
@@ -110,7 +110,9 @@ public class GeminiPromptImpl implements PromptProvider {
 
                 Also consider preferences of the family members.
 
-                Always remember to provide meals according to religion. Ex. Muslims do not eat pork, Hindus do not eat beef. For your information, the religion of the user is %s.
+                %s
+
+                %s
 
                 You must follow this JSON schema structure in order to be successfully parsed by the mobile client:
                         {
@@ -139,22 +141,23 @@ public class GeminiPromptImpl implements PromptProvider {
                                             }
                                         }
                 The JSON must be valid and all strings and keys must be quoted. Randomize the meal selection in each request using the generator seed. Keep notes empty if not necessary.
-                Do not make the suggestion boring. Only suggest foods that people from %s actually eat day to day, that are culturally appropriate and affordable within the given budget. Here are the last %d meals already eaten:
+                Do not make the suggestion boring. %s Here are the last %d meals already eaten:
                 %s. Be concise — just mention names and give short, consistent sentences.
                 """.formatted(
                         System.currentTimeMillis(),
                         getMealCount(preference,prompt),
                         getAgesOfTheMembers(preference,prompt),
-                        getCommaSeperatedBmiList(),
-                        getSpicyRating(preference,prompt) /*Spicy rating*/,
-                        getSaltRating(preference,prompt) /*Salt rating of the meal*/,
-                        getBudgetDescription(getPriceRating(preference,prompt), user.getCountry()) /*Budget with currency*/,
+                        getBmiContext(),
+                        getSpicyRating(preference,prompt),
+                        getSaltRating(preference,prompt),
+                        getBudgetDescription(getPriceRating(preference,prompt), user.getCountry()),
                         getMonthName(Calendar.getInstance().get(Calendar.MONTH)),
-                        user.getCountry(),
-                        user.getCountry() /*Country*/,
-                        getLanguageForCountry(user.getCountry()) /*Language*/,
-                        user.getReligion(),
-                        user.getCountry() /*country for food culture*/,
+                        getCountryText(user),
+                        getCountryText(user),
+                        getLanguageForCountry(user.getCountry()),
+                        getReligionInstruction(user),
+                        getGenderInstruction(user),
+                        getFoodCultureInstruction(user),
                         prompt.getLastMealRecord().size(),
                         StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", ")
                 );
@@ -268,6 +271,108 @@ public class GeminiPromptImpl implements PromptProvider {
                     catch (Exception e) { return "USD"; }
                 })
                 .orElse("USD");
+    }
+
+    // ── Null-safe profile context helpers ────────────────────────────────────
+
+    /** Returns the country string, or a fallback that tells the AI to use globally common food. */
+    private String getCountryText(User user) {
+        if (user.getCountry() == null || user.getCountry().isBlank()) {
+            return "unspecified (assume globally common, internationally popular food)";
+        }
+        return user.getCountry();
+    }
+
+    /**
+     * Returns the religion dietary instruction.
+     * If religion is missing, instructs the AI to suggest food that is safe for any religion.
+     */
+    private String getReligionInstruction(User user) {
+        if (user.getReligion() == null || user.getReligion().isBlank()) {
+            return "The user's religion is not specified. Suggest food that is religiously neutral and universally acceptable — avoid pork, beef, and other ingredients that are restricted by any major religion, unless the meal is explicitly labelled as optional. Prefer chicken, fish, vegetables, legumes, and eggs as protein sources.";
+        }
+        return "Always remember to provide meals according to religion. Ex. Muslims do not eat pork, Hindus do not eat beef. For your information, the religion of the user is " + user.getReligion() + ".";
+    }
+
+    /**
+     * Returns a gender-based nutritional hint.
+     * If gender is missing, skips gender-specific advice.
+     */
+    private String getGenderInstruction(User user) {
+        if (user.getGender() == null || user.getGender().isBlank()) {
+            return "The user's gender is not specified; apply general balanced nutrition guidelines.";
+        }
+        String g = user.getGender().trim().toLowerCase();
+        if (g.equals("male")) {
+            return "The user is male. Consider slightly higher protein and caloric needs typical for adult males.";
+        }
+        if (g.equals("female")) {
+            return "The user is female. Consider nutritional needs typical for adult females, including adequate iron and calcium-rich options.";
+        }
+        return "Apply general balanced nutrition guidelines for the user.";
+    }
+
+    /**
+     * Returns weather context as a human-readable string, or a neutral fallback if country is unknown.
+     */
+    private String getWeatherContext(User user) {
+        if (user.getCountry() == null || user.getCountry().isBlank()) {
+            return "Weather information is unavailable because the user's country is not specified. Suggest meals suitable for any climate.";
+        }
+        try {
+            Weather weather = weatherDataSource.getWeather(user.getCountry());
+            return "Location: %s, Temperature: %.1f°C (feels like %.1f°C), Min: %.1f°C, Max: %.1f°C, Humidity: %.0f%%, Wind speed: %.1f m/s, Cloudiness: %d%%, Season: %s"
+                    .formatted(
+                            weather.getLocationName(),
+                            weather.getTemperature(),
+                            weather.getFeelsLike(),
+                            weather.getTempMin(),
+                            weather.getTempMax(),
+                            weather.getHumidity(),
+                            weather.getWindSpeed(),
+                            weather.getCloudiness(),
+                            weather.getSeason()
+                    );
+        } catch (Exception e) {
+            logger.warn("Could not fetch weather for country={}", user.getCountry());
+            return "Weather data is temporarily unavailable. Suggest meals suitable for a temperate climate.";
+        }
+    }
+
+    /**
+     * Returns the cultural staple instruction, or a global-food fallback when country is unknown.
+     */
+    private String getCulturalStapleInstruction(User user) {
+        if (user.getCountry() == null || user.getCountry().isBlank()) {
+            return "The user's country is not specified. Suggest internationally popular, culturally diverse meals such as rice dishes, pasta, bread-based meals, or stir-fries. Respond to the user in English.";
+        }
+        return "Always include the staple/common food for the user's country. For example, Bangladeshi people almost always take rice with their meals, Indians often have roti or rice, etc. Use your knowledge of " + user.getCountry() + " cuisine to add culturally appropriate staples. Respond to the user in " + getLanguageForCountry(user.getCountry()) + ".";
+    }
+
+    /**
+     * Returns a food-culture instruction for the final sentence.
+     * Falls back to globally common food when country is unknown.
+     */
+    private String getFoodCultureInstruction(User user) {
+        if (user.getCountry() == null || user.getCountry().isBlank()) {
+            return "Suggest internationally popular foods that are affordable and widely enjoyed across different cultures.";
+        }
+        return "Only suggest foods that people from " + user.getCountry() + " actually eat day to day, that are culturally appropriate and affordable within the given budget.";
+    }
+
+    /**
+     * Returns BMI list, with a safe fallback if all members have unknown body metrics.
+     */
+    private String getBmiContext() {
+        try {
+            String bmi = getCommaSeperatedBmiList();
+            if (bmi == null || bmi.isBlank()) {
+                return "unknown (body metrics not provided; apply standard healthy BMI guidelines)";
+            }
+            return bmi;
+        } catch (Exception e) {
+            return "unknown (body metrics not provided; apply standard healthy BMI guidelines)";
+        }
     }
 
     private String getBudgetDescription(float rating, String country) {
