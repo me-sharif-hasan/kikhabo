@@ -63,8 +63,10 @@ public class DailyNotificationScheduler {
 
         List<String> countries = userDataSource.getDistinctCountriesForUsers(allUserIds);
         if (countries.isEmpty()) {
-            logger.info("[Scheduler] No country data found for token-holding users");
-            return;
+            logger.info("[Scheduler] No country data found for token-holding users,");
+          //set default country as USA
+            countries = List.of("USA");
+            //return;
         }
 
         logger.info("[Scheduler] Checking {} country(ies) for scheduled send windows", countries.size());
