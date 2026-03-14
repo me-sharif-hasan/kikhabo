@@ -48,6 +48,7 @@ jobs:
           aws.s3.secret-key=${{ secrets.S3_SECRET_ACCESS_TOKEN }}
           google.firebase.project-id=${{ secrets.FIREBASE_PROJECT_ID }}
           kikhabo.admin.api-key=${{ secrets.ADMIN_API_KEY }}
+          spring.data.mongodb.uri=${{ secrets.MONGODB_URI }}
           EOT
 
           cat src/main/resources/application-prod.properties
@@ -116,4 +117,5 @@ jobs:
           S3_SECRET_ACCESS_TOKEN: ${{ secrets.S3_SECRET_ACCESS_TOKEN }}
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
 
