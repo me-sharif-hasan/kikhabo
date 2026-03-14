@@ -1,7 +1,10 @@
 package com.iishanto.kikhabo.web.controller.v1;
 
+import com.iishanto.kikhabo.domain.usercase.recipe.BookmarkRecipeUseCase;
+import com.iishanto.kikhabo.domain.usercase.recipe.GetBookmarkedRecipesUseCase;
 import com.iishanto.kikhabo.domain.usercase.recipe.GetRandomRecipesUseCase;
 import com.iishanto.kikhabo.domain.usercase.recipe.GetRecipeDetailUseCase;
+import com.iishanto.kikhabo.domain.usercase.recipe.RemoveBookmarkUseCase;
 import com.iishanto.kikhabo.domain.usercase.recipe.RecipeSearchUseCase;
 import com.iishanto.kikhabo.web.dto.recipe.RecipeDetailDto;
 import com.iishanto.kikhabo.web.dto.recipe.RecipeDto;
@@ -24,13 +27,22 @@ public class RecipeController {
     private final RecipeSearchUseCase recipeSearchUseCase;
     private final GetRecipeDetailUseCase getRecipeDetailUseCase;
     private final GetRandomRecipesUseCase getRandomRecipesUseCase;
+    private final BookmarkRecipeUseCase bookmarkRecipeUseCase;
+    private final RemoveBookmarkUseCase removeBookmarkUseCase;
+    private final GetBookmarkedRecipesUseCase getBookmarkedRecipesUseCase;
 
     public RecipeController(RecipeSearchUseCase recipeSearchUseCase,
                             GetRecipeDetailUseCase getRecipeDetailUseCase,
-                            GetRandomRecipesUseCase getRandomRecipesUseCase) {
+                            GetRandomRecipesUseCase getRandomRecipesUseCase,
+                            BookmarkRecipeUseCase bookmarkRecipeUseCase,
+                            RemoveBookmarkUseCase removeBookmarkUseCase,
+                            GetBookmarkedRecipesUseCase getBookmarkedRecipesUseCase) {
         this.recipeSearchUseCase = recipeSearchUseCase;
         this.getRecipeDetailUseCase = getRecipeDetailUseCase;
         this.getRandomRecipesUseCase = getRandomRecipesUseCase;
+        this.bookmarkRecipeUseCase = bookmarkRecipeUseCase;
+        this.removeBookmarkUseCase = removeBookmarkUseCase;
+        this.getBookmarkedRecipesUseCase = getBookmarkedRecipesUseCase;
     }
 
     @GetMapping
@@ -65,6 +77,30 @@ public class RecipeController {
     ) {
         RecipePageResponse result = recipeSearchUseCase.execute(search, continent, subcontinent, page, size);
         return ResponseEntity.ok(new SuccessResponse<>("success", "Recipes fetched", result));
+    }
+
+    @GetMapping("/bookmarks")
+    @Operation(summary = "Get bookmarked recipes", description = "Returns the authenticated user's bookmarks, newest first. Supports optional search within bookmarks.")
+    public ResponseEntity<SuccessResponse<RecipePageResponse>> getBookmarks(
+            @Parameter(description = "Search within bookmarks only") @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(new SuccessResponse<>("success", "Bookmarks fetched",
+                getBookmarkedRecipesUseCase.execute(search, page, size)));
+    }
+
+    @PostMapping("/{id}/bookmark")
+    @Operation(summary = "Bookmark a recipe")
+    public ResponseEntity<SuccessResponse<Void>> bookmark(@PathVariable String id) {
+        bookmarkRecipeUseCase.execute(id);
+        return ResponseEntity.ok(new SuccessResponse<>("Recipe bookmarked"));
+    }
+
+    @DeleteMapping("/{id}/bookmark")
+    @Operation(summary = "Remove a recipe bookmark")
+    public ResponseEntity<SuccessResponse<Void>> removeBookmark(@PathVariable String id) {
+        removeBookmarkUseCase.execute(id);
+        return ResponseEntity.ok(new SuccessResponse<>("Bookmark removed"));
     }
 
     @GetMapping("/random")
