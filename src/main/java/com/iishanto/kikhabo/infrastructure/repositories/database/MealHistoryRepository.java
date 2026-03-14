@@ -25,6 +25,9 @@ public interface MealHistoryRepository extends JpaRepository<MealHistoryEntity, 
         @Query("SELECT mh FROM MealHistoryEntity mh WHERE mh.id IN :ids AND mh.user.id = :userId")
         List<MealHistoryEntity> findAllByIdInAndUserId(@Param("ids") List<Long> ids, @Param("userId") Long userId);
 
+        @Query(nativeQuery = true, value = "SELECT * FROM meal_histories WHERE user_id=:user_id AND meal_status=:status ORDER BY timestamp DESC LIMIT :limit")
+        List<MealHistoryEntity> findByUserAndStatusOrderByTimestampDesc(@Param("user_id") long user_id, @Param("status") String status, @Param("limit") int limit);
+
         // Analytics Queries - Energy
         @Query(value = "SELECT DATE(FROM_UNIXTIME(mh.timestamp/1000)) as date, " +
                         "COALESCE(SUM(m.total_energy), 0) as totalEnergy " +

@@ -17,4 +17,6 @@ public class Prompt extends SchemaEntity {
     private String message;
     private MealPreferenceData mealPreferenceData;
     private List<Meal> lastMealRecord;
+    private List<Meal> rejectedMeals;
+    private List<Meal> likedMeals;
 }

@@ -1,0 +1,37 @@
+{
+  "cuisine_tags_by_continent_and_subcontinent": {
+    "Americas": {
+      "Northern America": ["American", "Southern", "Biscuits", "Gravy", "Buttermilk", "Hashbrown", "Shortcake", "Berry", "Ham Glaze", "Roast Beef", "Burger", "BBQ", "Pancake", "Fried Chicken", "Grits", "Poutine", "Maple"],
+      "Central America": ["Mexican", "Taco", "Mole", "Tortilla", "Guacamole", "Enchilada", "Tamale", "Pozole"],
+      "Caribbean": ["Jerk", "Plantain", "Rice and Beans", "Roti", "Ackee", "Callaloo", "Conch"],
+      "South America": ["Asado", "Beef Grill", "Feijoada", "Black Bean", "Ceviche", "Empanada", "Anticucho", "Churrasco", "Arepas", "Arepa"]
+    },
+    "Asia": {
+      "Southern Asia": ["Bangla" ,"Indian", "Bangladeshi", "Curry", "Spice", "Dal", "Naan", "Turmeric", "Cumin", "Ghee", "Biryani", "Masala", "Karahi", "Bhorta", "Tikka", "Vindaloo"],
+      "Western Asia": ["Middle Eastern", "Lebanese", "Turkish", "Zaatar", "Sumac", "Chickpea", "Cumin", "Tahini", "Pomegranate", "Hummus", "Tabouleh", "Kebab", "Baklava", "Falafel", "Shawarma", "Dolma", "Meze"],
+      "Eastern Asia": ["Chinese", "Japanese", "Korean", "Dim Sum", "Wok", "Sushi", "Ramen", "Kimchi", "Bibimbap", "Soy Sauce", "Ginger", "Sesame", "Stir Fry", "Miso", "Teriyaki"],
+      "South-eastern Asia": ["Thai", "Vietnamese", "Indonesian", "Pad Thai", "Tom Yum", "Pho", "Banh Mi", "Rendang", "Satay", "Fish Sauce", "Lemongrass", "Coconut", "Chili", "Nasi Goreng", "Curry Paste"],
+      "Central Asia": ["Plov", "Manti", "Lagman", "Shashlik", "Samsa", "Beshbarmak", "Kuurdak", "Horse Meat", "Kazy", "Non"]
+    },
+    "Europe": {
+      "Northern Europe": ["British", "Fish Chips", "Roast", "Pudding", "Full English", "Haggis", "Smorrebrod"],
+      "Western Europe": ["French", "Baguette", "Croissant", "Coq au Vin", "Cheese", "Cream", "Butter", "Escargot"],
+      "Southern Europe": ["Italian", "Greek", "Spanish", "Pasta", "Pizza", "Risotto", "Gelato", "Souvlaki", "Tzatziki", "Feta", "Paella", "Tapas", "Olive Oil", "Yogurt", "Osso Buco"],
+      "Eastern Europe": ["Russian", "Polish", "Borscht", "Pelmeni", "Sauerkraut", "Sausage", "Pierogi", "Goulash"]
+    },
+    "Africa": {
+      "Northern Africa": ["Moroccan", "Egyptian", "Tagine", "Couscous", "Harira", "Ful", "Koshari", "Zaatar", "Chickpea", "Preserved Lemon", "Ras el Hanout"],
+      "Western Africa": ["Jollof", "Peanut Stew", "Fufu", "Egusi", "Suya", "Palm Oil", "Cassava"],
+      "Eastern Africa": ["Injera", "Doro Wat", "Ugali", "Sukuma Wiki", "Nyama Choma", "Chapati", "Pilau"],
+      "Middle Africa": ["Moambe", "Ndole", "Poulet Yassa", "Fufu", "Plantain"],
+      "Southern Africa": ["Bobotie", "Biltong", "Braai", "Pap", "Boerewors", "Malva Pudding"]
+    },
+    "Oceania": {
+      "Australia and New Zealand": ["Australian", "Meat Pie", "Vegemite", "Lamington", "Pavlova", "Seafood", "Lamb", "Anzac Biscuit"],
+      "Melanesia": ["Kokoda", "Lap Lap", "Taro", "Coconut Cream", "Yam"],
+      "Micronesia": ["Palauan", "Taro", "Fish", "Breadfruit", "Kelaguen"],
+      "Polynesia": ["Poi", "Luau", "Hangi", "Coconut Milk", "Raw Fish", "Earth Oven"]
+    }
+  },
+  "notes": "Enriched terms added for better recipe matching. All keys and values use only plain letters numbers and spaces. No special characters or punctuation inside arrays."
+}

@@ -12,6 +12,8 @@ public interface MealDataSource {
     void addMealHistory(List<Meal> meals);
 
     List<Meal> getLastMeals(int limit);
+    List<Meal> getLastRejectedMeals(int limit);
+    List<Meal> getLastLikedMeals(int limit);
 
     boolean update(MealHistory mealHistory);
 }

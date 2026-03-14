@@ -27,8 +27,10 @@ public class GenerateMealSuggestionUseCase implements UseCase<GroceryPlanningPro
     public GroceryPlanningPromptResponse execute(MealPreferenceData mealPreferenceData) throws JsonProcessingException {
         Prompt prompt=new Prompt();
         prompt.setMealPreferenceData(mealPreferenceData);
-        List <Meal> lastMealRecord=mealDataSource.getLastMeals(10);
+        List<Meal> lastMealRecord = mealDataSource.getLastMeals(10);
         prompt.setLastMealRecord(lastMealRecord);
+        prompt.setRejectedMeals(mealDataSource.getLastRejectedMeals(7));
+        prompt.setLikedMeals(mealDataSource.getLastLikedMeals(5));
         GroceryPlanningPromptResponse promptResponse=objectMapper.readValue(chatBotDataSource.prompt(prompt),GroceryPlanningPromptResponse.class);
         List<Meal> meals=promptResponse.getData().getMeals();
         mealDataSource.addMealHistory(meals);

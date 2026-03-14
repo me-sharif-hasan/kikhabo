@@ -80,6 +80,26 @@ public class MealDataSourceImpl implements MealDataSource {
         return false;
     }
 
+    @Override
+    public List<Meal> getLastRejectedMeals(int limit) {
+        Long userId = userDataSource.getAuthenticatedUser().getId();
+        return mealHistoryRepository.findByUserAndStatusOrderByTimestampDesc(userId, "REJECTED", limit)
+                .stream().map(mh -> mh.getMealEntity().toDomain()).toList();
+    }
+
+    @Override
+    public List<Meal> getLastLikedMeals(int limit) {
+        Long userId = userDataSource.getAuthenticatedUser().getId();
+        // TAKEN = user actually ate it; ACCEPTED = user approved it
+        List<MealHistoryEntity> taken = mealHistoryRepository.findByUserAndStatusOrderByTimestampDesc(userId, "TAKEN", limit);
+        List<MealHistoryEntity> accepted = mealHistoryRepository.findByUserAndStatusOrderByTimestampDesc(userId, "ACCEPTED", limit);
+        return java.util.stream.Stream.concat(taken.stream(), accepted.stream())
+                .sorted(java.util.Comparator.comparingLong(mh -> -mh.getTimestamp()))
+                .limit(limit)
+                .map(mh -> mh.getMealEntity().toDomain())
+                .toList();
+    }
+
     private List<Meal> getMealsForUid(Long userId, int limit) {
         List<MealHistoryEntity> mealHistoryEntities = mealHistoryRepository.findAllByUserOrderByTimestampDesc(userId, limit);
         logger.info("MealHistoriesFetched. Total history {}",mealHistoryEntities.size());

@@ -46,10 +46,13 @@ public class GeminiPromptImpl implements PromptProvider {
                                 "text": "%s"
                             },
                             {
-                                "text": "I have already eaten these items in my meal. So I want you to consider these and prepare the meal
-                                and grocery suggestion according to the following prompt so that the suggestion do not become boring. Try to serve
-                                different kinds of food, not just flavors of these, %s. Also consider giving healthy food according to the BMI I'll give in
-                                the following prompt"
+                                "text": "I have already eaten these items recently. Avoid repeating them and keep the suggestions fresh and varied: %s"
+                            },
+                            {
+                                "text": "%s"
+                            },
+                            {
+                                "text": "%s"
                             },
                             {
                                 "text": "Here is the current weather information that might be helpful to generate the meal suggestions. You should suggest best meal within the budget range
@@ -71,8 +74,10 @@ public class GeminiPromptImpl implements PromptProvider {
                      }
                 }
                 """.formatted(
-                        getUserPrompt(prompt,user),
-                        StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", "),
+                        getUserPrompt(prompt, user),
+                        StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(), ", "),
+                        getRejectedMealsInstruction(prompt),
+                        getLikedMealsInstruction(prompt),
                         getWeatherContext(user),
                         getCulturalStapleInstruction(user),
                         getFamilyPreferences(),
@@ -141,26 +146,37 @@ public class GeminiPromptImpl implements PromptProvider {
                                             }
                                         }
                 The JSON must be valid and all strings and keys must be quoted. Randomize the meal selection in each request using the generator seed. Keep notes empty if not necessary.
-                Do not make the suggestion boring. %s Here are the last %d meals already eaten:
-                %s. Be concise — just mention names and give short, consistent sentences.
+                Do not make the suggestion boring. %s Be concise — just mention names and give short, consistent sentences.
                 """.formatted(
                         System.currentTimeMillis(),
-                        getMealCount(preference,prompt),
-                        getAgesOfTheMembers(preference,prompt),
+                        getMealCount(preference, prompt),
+                        getAgesOfTheMembers(preference, prompt),
                         getBmiContext(),
-                        getSpicyRating(preference,prompt),
-                        getSaltRating(preference,prompt),
-                        getBudgetDescription(getPriceRating(preference,prompt), user.getCountry()),
+                        getSpicyRating(preference, prompt),
+                        getSaltRating(preference, prompt),
+                        getBudgetDescription(getPriceRating(preference, prompt), user.getCountry()),
                         getMonthName(Calendar.getInstance().get(Calendar.MONTH)),
                         getCountryText(user),
                         getCountryText(user),
                         getLanguageForCountry(user.getCountry()),
                         getReligionInstruction(user),
                         getGenderInstruction(user),
-                        getFoodCultureInstruction(user),
-                        prompt.getLastMealRecord().size(),
-                        StringUtils.join(prompt.getLastMealRecord().stream().map(Meal::getMealName).toList(),", ")
+                        getFoodCultureInstruction(user)
                 );
+    }
+
+    private String getRejectedMealsInstruction(Prompt prompt) {
+        List<Meal> rejected = prompt.getRejectedMeals();
+        if (rejected == null || rejected.isEmpty()) return "";
+        String names = StringUtils.join(rejected.stream().map(Meal::getMealName).toList(), ", ");
+        return "The user has previously disliked or rejected these meals — do NOT suggest them: " + names + ".";
+    }
+
+    private String getLikedMealsInstruction(Prompt prompt) {
+        List<Meal> liked = prompt.getLikedMeals();
+        if (liked == null || liked.isEmpty()) return "";
+        String names = StringUtils.join(liked.stream().map(Meal::getMealName).toList(), ", ");
+        return "The user has enjoyed these meals before — use them as a flavor/style reference but do not repeat them exactly: " + names + ".";
     }
 
     private String getAvailableIngredientsText(Prompt prompt) {
