@@ -2,16 +2,21 @@ package com.iishanto.kikhabo.infrastructure.services.notification;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.iishanto.kikhabo.domain.entities.notification.NotificationVariant;
 import com.iishanto.kikhabo.infrastructure.model.RecipeCacheEntity;
 import com.iishanto.kikhabo.infrastructure.model.RecipeDocument;
 import com.iishanto.kikhabo.infrastructure.repositories.database.RecipeCacheRepository;
 import com.iishanto.kikhabo.infrastructure.services.chatbot.ChatBotApiService;
+import com.iishanto.kikhabo.infrastructure.services.recipe.CountryService;
+import com.iishanto.kikhabo.infrastructure.services.recipe.RecommendationService;
+import com.iishanto.kikhabo.infrastructure.services.recipe.RecipeImageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -27,227 +32,201 @@ public class HealthyMealNotificationService {
     private final RecipeCacheRepository recipeCacheRepository;
     private final MongoTemplate mongoTemplate;
     private final ObjectMapper objectMapper;
+    private final CountryService countryService;
+    private final RecommendationService recommendationService;
+    private final RecipeImageService recipeImageService;
 
     public HealthyMealNotificationService(ChatBotApiService chatBotApiService,
                                           RecipeCacheRepository recipeCacheRepository,
                                           MongoTemplate mongoTemplate,
-                                          ObjectMapper objectMapper) {
+                                          ObjectMapper objectMapper,
+                                          CountryService countryService,
+                                          RecommendationService recommendationService,
+                                          RecipeImageService recipeImageService) {
         this.chatBotApiService = chatBotApiService;
         this.recipeCacheRepository = recipeCacheRepository;
         this.mongoTemplate = mongoTemplate;
         this.objectMapper = objectMapper;
+        this.countryService = countryService;
+        this.recommendationService = recommendationService;
+        this.recipeImageService = recipeImageService;
     }
 
     /**
-     * Generates up to {@code count} healthy meal notification variants for a country.*
-     * Flow per variant:
-     *   1. Ask Gemini for well-known healthy recipe names + notification text in user's language
-     *   2. For each recipe name: search MySQL → MongoDB → Gemini full generation
-     *   3. Return NotificationVariant with extra carrying the recipe_id for deep link
+     * Generates up to {@code count} healthy meal notification variants for a country.
+     * New flow:
+     *   1. Resolve country → continent/subcontinent via CountryService (countries.json)
+     *   2. Get regional cuisine tags from RecommendationService (recomendation.json)
+     *   3. Search MongoDB for non-excluded seed recipes matching those tags
+     *   4. Shuffle seeds; for each seed check composite-key cache (mongoId + country)
+     *   5. On cache miss: Gemini fine-tunes the seed into a country-specific recipe
+     *      and returns notification title/body in the user's language in one call
      */
     public List<NotificationVariant> generateVariants(String country, String language, String timeSlot, int count) {
-        List<SuggestedMeal> suggestions = suggestMealNames(country, language, timeSlot, count);
-        if (suggestions.isEmpty()) {
-            log.warn("[HealthyMeal] No meal suggestions from Gemini for country={}", country);
+        // Step 1: Resolve region
+        CountryService.Region region = countryService.resolve(country);
+        if (region == null) {
+            log.warn("[HealthyMeal] Unrecognized country='{}', cannot resolve region", country);
             return List.of();
         }
 
+        // Step 2: Get cuisine tags for this region
+        List<String> tags = recommendationService.getTerms(region.getContinent(), region.getSubcontinent());
+        if (tags.isEmpty()) {
+            log.warn("[HealthyMeal] No cuisine tags for country={} ({}/{})",
+                    country, region.getContinent(), region.getSubcontinent());
+            return List.of();
+        }
+
+        // Step 3: Find seed recipes in MongoDB matching regional tags
+        List<RecipeDocument> seeds = findSeedRecipes(tags, count * 3);
+        if (seeds.isEmpty()) {
+            log.warn("[HealthyMeal] No seed recipes found in MongoDB for country={}", country);
+            return List.of();
+        }
+        // Step 4: Resolve each seed → NotificationVariant
         List<NotificationVariant> variants = new ArrayList<>();
-        for (SuggestedMeal suggestion : suggestions) {
-            RecipeCacheEntity recipe = resolveRecipe(suggestion, country, language);
-            if (recipe == null) {
-                log.warn("[HealthyMeal] Could not resolve recipe '{}' for country={}, skipping", suggestion.name(), country);
-                continue;
-            }
-            String extra = "{\"recipeId\":\"" + recipe.getRecipeId() + "\"}";
+        for (RecipeDocument seed : seeds) {
+            if (variants.size() >= count) break;
+            SeedResult result = resolveFromSeed(seed, country, language, timeSlot);
+            if (result == null) continue;
+
+            String extra = "{\"recipeId\":\"" + result.entity().getRecipeId() + "\"}";
             variants.add(NotificationVariant.builder()
                     .audience("general")
-                    .title(suggestion.title())
-                    .body(suggestion.body())
+                    .title(result.title())
+                    .body(result.body())
                     .extra(extra)
                     .build());
-            log.info("[HealthyMeal] Resolved variant: recipe='{}' id='{}' country={}", recipe.getName(), recipe.getRecipeId(), country);
+            log.info("[HealthyMeal] Variant resolved: recipe='{}' id='{}' country={}",
+                    result.entity().getName(), result.entity().getRecipeId(), country);
         }
         return variants;
     }
 
-    // ── Step 1: Ask Gemini for well-known recipe names + notification text ────
+    // ── MongoDB seed search ───────────────────────────────────────────────────
 
-    private List<SuggestedMeal> suggestMealNames(String country, String language, String timeSlot, int count) {
-        String prompt = buildSuggestionPrompt(country, language, timeSlot, count);
-        if (prompt == null) return List.of();
+    /**
+     * Mirrors GetRandomRecipesUseCase.buildContinentCriteria:
+     * regex OR on name/ingredients across regional tags, then $sample for random results.
+     */
+    private List<RecipeDocument> findSeedRecipes(List<String> tags, int limit) {
+        String pattern = String.join("|", tags);
+        Criteria tagMatch = new Criteria().orOperator(
+                Criteria.where("name").regex(pattern, "i"),
+                Criteria.where("ingredients").regex(pattern, "i")
+        );
+        Criteria finalCriteria = new Criteria().andOperator(
+                Criteria.where("excluded").ne(true),
+                tagMatch
+        );
 
-        String response = chatBotApiService.request(prompt);
-        if (response == null) {
-            log.error("[HealthyMeal] Gemini returned null for meal suggestion, country={}", country);
-            return List.of();
-        }
-        return parseSuggestions(response);
-    }
-
-    private String buildSuggestionPrompt(String country, String language, String timeSlot, int count) {
-        try {
-            StringBuilder schemaItems = new StringBuilder();
-            for (int i = 0; i < count; i++) {
-                if (i > 0) schemaItems.append(",");
-                schemaItems.append("{\"name\":\"<dish name in official local script>\",\"nameEnglish\":\"<dish name in English Roman alphabet>\",\"title\":\"<notification title max 50 chars>\",\"body\":\"<notification body max 100 chars>\"}");
-            }
-            String schema = "{\"meals\":[" + schemaItems + "]}";
-
-            com.fasterxml.jackson.databind.node.ObjectNode root = objectMapper.createObjectNode();
-            com.fasterxml.jackson.databind.node.ArrayNode contents = root.putArray("contents");
-            com.fasterxml.jackson.databind.node.ObjectNode content = contents.addObject();
-            com.fasterxml.jackson.databind.node.ArrayNode parts = content.putArray("parts");
-
-            parts.addObject().put("text",
-                    "You are a nutrition expert and food cultural advisor. " +
-                    "Your task is to suggest well-known, genuinely popular healthy " + timeSlot + " recipes from " + country + ". " +
-                    "IMPORTANT RULES: " +
-                    "1. Only suggest recipes that are truly well-known and traditional in " + country + ". Do NOT invent recipes. " +
-                    "2. 'name' must be the dish name written in the official language/script of " + country + " (e.g. Bengali script for Bangladesh). " +
-                    "3. 'nameEnglish' must be the same dish name in English Roman alphabet only (e.g. 'Macher Jhol'). Used for search — must be ASCII-safe.");
-
-            parts.addObject().put("text",
-                    "Generate exactly " + count + " healthy meal suggestion(s) for the '" + timeSlot + "' time slot in " + country + ". " +
-                    "For each suggestion: " +
-                    "1) 'name': dish name in the official script/language of " + country + " — for display to users. " +
-                    "2) 'nameEnglish': the same dish in English Roman alphabet ONLY — no local script whatsoever. " +
-                    "3) 'title': push notification title (max 50 chars) in " + language + ". " +
-                    "4) 'body': push notification body (max 100 chars) in " + language + " highlighting health benefits. " +
-                    "Ensure all suggestions are genuinely healthy and appropriate for " + timeSlot + ".");
-
-            parts.addObject().put("text",
-                    "Respond with ONLY a valid JSON object — no markdown, no extra text. Schema: " + schema);
-
-            com.fasterxml.jackson.databind.node.ObjectNode genConfig = root.putObject("generationConfig");
-            genConfig.put("responseMimeType", "application/json");
-            genConfig.put("temperature", 0.7);
-
-            return objectMapper.writeValueAsString(root);
-        } catch (Exception e) {
-            log.error("[HealthyMeal] Failed to build suggestion prompt: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    private List<SuggestedMeal> parseSuggestions(String rawResponse) {
-        List<SuggestedMeal> result = new ArrayList<>();
-        try {
-            JsonNode root = objectMapper.readTree(rawResponse);
-            String jsonText = extractGeminiText(root);
-            if (jsonText == null) return List.of();
-
-            JsonNode parsed = objectMapper.readTree(jsonText);
-            JsonNode meals = parsed.get("meals");
-            if (meals == null || !meals.isArray()) return List.of();
-
-            for (JsonNode meal : meals) {
-                String name        = meal.path("name").asText("").trim();
-                String nameEnglish = meal.path("nameEnglish").asText("").trim();
-                String title       = meal.path("title").asText("").trim();
-                String body        = meal.path("body").asText("").trim();
-                if (!nameEnglish.isBlank() && !title.isBlank()) {
-                    result.add(new SuggestedMeal(name.isBlank() ? nameEnglish : name, nameEnglish, title, body));
-                }
-            }
-        } catch (Exception e) {
-            log.error("[HealthyMeal] Failed to parse suggestion response: {}", e.getMessage());
-        }
-        return result;
-    }
-
-    // ── Step 2: Resolve recipe — MySQL → MongoDB → Gemini full generation ─────
-
-    private RecipeCacheEntity resolveRecipe(SuggestedMeal suggestion, String country, String language) {
-        // nameEnglish is used for all lookups — ASCII-safe, no encoding issues
-        String normalized = suggestion.nameEnglish().toLowerCase().trim();
-
-        // MySQL lookup by English normalized name
-        RecipeCacheEntity cached = recipeCacheRepository.findByNameNormalized(normalized).orElse(null);
-        if (cached != null) {
-            log.info("[HealthyMeal] Cache hit in MySQL for '{}'", suggestion.nameEnglish());
-            return cached;
-        }
-
-        // MongoDB lookup by English name (case-insensitive regex on ASCII name)
-        RecipeDocument mongoDoc = mongoTemplate.findOne(
-                Query.query(Criteria.where("name").regex("^" + escapeRegex(suggestion.nameEnglish()) + "$", "i")),
+        AggregationResults<RecipeDocument> results = mongoTemplate.aggregate(
+                Aggregation.newAggregation(
+                        Aggregation.match(finalCriteria),
+                        Aggregation.sample(limit)
+                ),
+                RecipeDocument.class,
                 RecipeDocument.class
         );
-        if (mongoDoc != null) {
-            log.info("[HealthyMeal] Found '{}' in MongoDB, caching to MySQL", suggestion.nameEnglish());
-            return saveToCache(RecipeCacheEntity.builder()
-                    .recipeId(mongoDoc.getId())
-                    .mongoId(mongoDoc.getId())
-                    .name(suggestion.name())           // local-script display name
-                    .nameNormalized(normalized)         // English romanized for dedup
-                    .ingredients(mongoDoc.getIngredients())
-                    .url(mongoDoc.getUrl())
-                    .image(mongoDoc.getImage())
-                    .source(mongoDoc.getSource())
-                    .recipeYield(mongoDoc.getRecipeYield())
-                    .datePublished(mongoDoc.getDatePublished())
-                    .cookTime(mongoDoc.getCookTime())
-                    .prepTime(mongoDoc.getPrepTime())
-                    .description(mongoDoc.getDescription())
-                    .country(country)
-                    .cookingGuide(mongoDoc.getCookingGuide())
-                    .excluded(mongoDoc.isExcluded())
-                    .build());
-        }
-
-        // Gemini full recipe generation (last resort) — uses English name to avoid encoding issues
-        log.info("[HealthyMeal] '{}' not found anywhere, generating full recipe via Gemini", suggestion.nameEnglish());
-        return generateAndCache(suggestion, country, language);
+        return results.getMappedResults();
     }
 
-    private RecipeCacheEntity generateAndCache(SuggestedMeal suggestion, String country, String language) {
-        String prompt = buildFullRecipePrompt(suggestion.nameEnglish(), country, language);
+    // ── Cache check + Gemini fine-tune ────────────────────────────────────────
+
+    private SeedResult resolveFromSeed(RecipeDocument seed, String country, String language, String timeSlot) {
+        // Composite-key cache check: (mongoId, country) — one entry per recipe per country
+        RecipeCacheEntity cached = recipeCacheRepository
+                .findByMongoIdAndCountryIgnoreCase(seed.getId(), country)
+                .orElse(null);
+
+        if (cached != null) {
+            log.info("[HealthyMeal] Composite cache hit: mongoId='{}' country='{}'", seed.getId(), country);
+            return new SeedResult(cached,
+                    fallbackTitle(cached.getName()),
+                    fallbackBody(cached.getDescription()));
+        }
+
+        // Cache miss — Gemini fine-tunes the seed for this country/language
+        log.info("[HealthyMeal] Cache miss — using MongoDB seed: id='{}' name='{}' → fine-tuning for country={}",
+                seed.getId(), seed.getName(), country);
+        return generateAndCacheFromSeed(seed, country, language, timeSlot);
+    }
+
+    private SeedResult generateAndCacheFromSeed(RecipeDocument seed, String country, String language, String timeSlot) {
+        String prompt = buildFineTunePrompt(seed, country, language, timeSlot);
         if (prompt == null) return null;
 
         String response = chatBotApiService.request(prompt);
-        if (response == null) return null;
+        if (response == null) {
+            log.error("[HealthyMeal] Gemini returned null for seed='{}' country={}", seed.getName(), country);
+            return null;
+        }
 
-        RecipeCacheEntity entity = parseFullRecipe(response, suggestion, country);
-        if (entity == null) return null;
-
-        return saveToCache(entity);
+        return parseAndCache(response, seed, country);
     }
 
-    private String buildFullRecipePrompt(String name, String country, String language) {
-        try {
-            String schema = "{\"name\":\"string\",\"ingredients\":\"comma-separated list\",\"cookTime\":\"e.g. PT30M\",\"prepTime\":\"e.g. PT15M\",\"recipeYield\":\"e.g. 4 servings\",\"description\":\"short description\",\"cookingGuide\":\"step-by-step guide\"}";
+    // ── Gemini prompt: seed → country-specific recipe + notification text ─────
 
-            com.fasterxml.jackson.databind.node.ObjectNode root = objectMapper.createObjectNode();
+    private String buildFineTunePrompt(RecipeDocument seed, String country, String language, String timeSlot) {
+        try {
+            String schema = "{"
+                    + "\"name\":\"<dish name in " + country + "s official script>\","
+                    + "\"nameEnglish\":\"<dish name in English Roman alphabet only>\","
+                    + "\"title\":\"<push notification title in " + language + ", max 50 chars>\","
+                    + "\"body\":\"<push notification body in " + language + ", max 100 chars, highlight health benefits>\","
+                    + "\"ingredients\":\"<adapted comma-separated ingredient list for " + country + ">\","
+                    + "\"cookTime\":\"<ISO 8601 e.g. PT30M>\","
+                    + "\"prepTime\":\"<ISO 8601 e.g. PT15M>\","
+                    + "\"recipeYield\":\"<e.g. 4 servings>\","
+                    + "\"description\":\"<short description in " + language + ">\","
+                    + "\"cookingGuide\":\"<clear numbered step-by-step guide in " + language + ">\""
+                    + "}";
+
+            String seedContext = "Original recipe from database:\n"
+                    + "Name: " + seed.getName() + "\n"
+                    + (seed.getIngredients() != null ? "Ingredients: " + seed.getIngredients() + "\n" : "")
+                    + (seed.getDescription() != null ? "Description: " + seed.getDescription() + "\n" : "")
+                    + (seed.getCookTime() != null ? "Cook time: " + seed.getCookTime() + "\n" : "")
+                    + (seed.getPrepTime() != null ? "Prep time: " + seed.getPrepTime() + "\n" : "");
+
+            ObjectNode root = objectMapper.createObjectNode();
             com.fasterxml.jackson.databind.node.ArrayNode contents = root.putArray("contents");
             com.fasterxml.jackson.databind.node.ObjectNode content = contents.addObject();
             com.fasterxml.jackson.databind.node.ArrayNode parts = content.putArray("parts");
 
             parts.addObject().put("text",
-                    "You are a professional chef and food expert writing for home cooks in " + country + ". " +
-                    "Generate accurate recipe details for '" + name + "', a traditional dish from " + country + ". " +
-                    "IMPORTANT RULES: " +
-                    "1. This must be the authentic, well-known recipe — do not invent or alter it. " +
-                    "2. If you do not recognize '" + name + "' as a real dish, set 'description' to 'UNRECOGNIZED' and leave other fields empty. " +
-                    "3. Write ALL text fields (description, ingredients, cookingGuide, recipeYield) in " + language + " — the official language of " + country + ". " +
-                    "4. Only cookTime and prepTime should remain in ISO 8601 format (e.g. PT30M). " +
-                    "5. The cookingGuide must be clear numbered steps a home cook can follow.");
+                    "You are a professional chef and cultural food expert. "
+                    + "You will receive a seed recipe and adapt it into a traditional, authentic " + timeSlot + " dish "
+                    + "specifically for home cooks in " + country + ". "
+                    + "RULES: "
+                    + "1. The dish must be appropriate for " + timeSlot + " — portion size, ingredients, and cooking style should suit this meal time. "
+                    + "2. Adapt the recipe to use locally available traditional ingredients in " + country + ". "
+                    + "3. The dish must feel genuinely traditional and culturally familiar in " + country + ". "
+                    + "4. 'name' must be written in the official script/language of " + country + " (e.g. Bengali for Bangladesh). "
+                    + "5. 'nameEnglish' must be ASCII Roman alphabet only — no local script characters. "
+                    + "6. All text fields (description, ingredients, cookingGuide, recipeYield) must be in " + language + ". "
+                    + "7. 'title' and 'body' are push notification strings in " + language + " — concise, enticing, culturally resonant, and relevant to " + timeSlot + ". "
+                    + "8. 'cookTime' and 'prepTime' must remain in ISO 8601 format (e.g. PT30M).");
+
+            parts.addObject().put("text", seedContext);
 
             parts.addObject().put("text",
-                    "Respond with ONLY a valid JSON object — no markdown, no extra text. Schema: " + schema);
+                    "Using the seed recipe above as context, generate a culturally authentic " + country + " " + timeSlot
+                    + " version. Respond with ONLY valid JSON — no markdown, no extra text. Schema: " + schema);
 
             com.fasterxml.jackson.databind.node.ObjectNode genConfig = root.putObject("generationConfig");
             genConfig.put("responseMimeType", "application/json");
-            genConfig.put("temperature", 0.4);
+            genConfig.put("temperature", 0.5);
 
             return objectMapper.writeValueAsString(root);
         } catch (Exception e) {
-            log.error("[HealthyMeal] Failed to build full recipe prompt for '{}': {}", name, e.getMessage());
+            log.error("[HealthyMeal] Failed to build fine-tune prompt for seed='{}': {}", seed.getName(), e.getMessage());
             return null;
         }
     }
 
-    private RecipeCacheEntity parseFullRecipe(String rawResponse, SuggestedMeal suggestion, String country) {
+    private SeedResult parseAndCache(String rawResponse, RecipeDocument seed, String country) {
         try {
             JsonNode root = objectMapper.readTree(rawResponse);
             String jsonText = extractGeminiText(root);
@@ -255,41 +234,80 @@ public class HealthyMealNotificationService {
 
             JsonNode parsed = objectMapper.readTree(jsonText);
             String description = parsed.path("description").asText("").trim();
-            if ("UNRECOGNIZED".equalsIgnoreCase(description)) {
-                log.warn("[HealthyMeal] Gemini does not recognize '{}' as a real dish — discarding", suggestion.nameEnglish());
+            if (description.isBlank()) {
+                log.warn("[HealthyMeal] Gemini returned blank description for seed='{}', skipping", seed.getName());
                 return null;
             }
 
-            return RecipeCacheEntity.builder()
+            String title       = parsed.path("title").asText("").trim();
+            String body        = parsed.path("body").asText("").trim();
+            String nameEnglish = parsed.path("nameEnglish").asText(seed.getName()).trim();
+            String name        = parsed.path("name").asText(nameEnglish).trim();
+
+            RecipeCacheEntity entity = RecipeCacheEntity.builder()
                     .recipeId(UUID.randomUUID().toString())
-                    .mongoId(null)
-                    .name(suggestion.name())                              // local-script display name
-                    .nameNormalized(suggestion.nameEnglish().toLowerCase().trim()) // English dedup key
-                    .ingredients(parsed.path("ingredients").asText(null))
-                    .cookTime(parsed.path("cookTime").asText(null))
-                    .prepTime(parsed.path("prepTime").asText(null))
-                    .recipeYield(parsed.path("recipeYield").asText(null))
-                    .description(parsed.path("description").asText(null))
+                    .mongoId(seed.getId())                              // composite dedup: mongoId
+                    .name(name)
+                    .nameNormalized(nameEnglish.toLowerCase().trim())
+                    .ingredients(parsed.path("ingredients").asText(seed.getIngredients()))
+                    .url(seed.getUrl())
+                    .image(seed.getImage())
+                    .cookTime(parsed.path("cookTime").asText(seed.getCookTime()))
+                    .prepTime(parsed.path("prepTime").asText(seed.getPrepTime()))
+                    .recipeYield(parsed.path("recipeYield").asText(seed.getRecipeYield()))
+                    .description(description)
                     .cookingGuide(parsed.path("cookingGuide").asText(null))
-                    .country(country)
-                    .source("gemini")
+                    .country(country)                                  // composite dedup: country
+                    .source("gemini-seeded")
                     .excluded(false)
                     .build();
+
+            RecipeCacheEntity saved = saveToCache(entity);
+            return new SeedResult(saved,
+                    title.isBlank() ? fallbackTitle(name) : title,
+                    body.isBlank()  ? fallbackBody(description) : body);
         } catch (Exception e) {
-            log.error("[HealthyMeal] Failed to parse full recipe response for '{}': {}", suggestion.nameEnglish(), e.getMessage());
+            log.error("[HealthyMeal] Failed to parse fine-tune response for seed='{}': {}", seed.getName(), e.getMessage());
             return null;
         }
+    }
+
+    // ── Fallback notification text for cache hits ─────────────────────────────
+
+    private String fallbackTitle(String name) {
+        if (name == null) return "Healthy Meal for You";
+        String t = "Try: " + name;
+        return t.length() > 50 ? t.substring(0, 47) + "..." : t;
+    }
+
+    private String fallbackBody(String description) {
+        if (description == null) return "A healthy traditional meal for you today!";
+        return description.length() > 100 ? description.substring(0, 97) + "..." : description;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private RecipeCacheEntity saveToCache(RecipeCacheEntity entity) {
+        RecipeCacheEntity saved;
         try {
-            return recipeCacheRepository.save(entity);
+            saved = recipeCacheRepository.save(entity);
         } catch (Exception e) {
             log.error("[HealthyMeal] Failed to save recipe '{}' to MySQL cache: {}", entity.getName(), e.getMessage());
-            return entity; // still usable even if save failed
+            return entity; // still usable even if save fails
         }
+
+        // Always generate a synthetic image — overrides any existing URL
+        String imageUrl = recipeImageService.generateAndUpload(saved);
+        if (imageUrl != null) {
+            saved.setImage(imageUrl);
+            try {
+                saved = recipeCacheRepository.save(saved);
+            } catch (Exception e) {
+                log.error("[HealthyMeal] Failed to persist image URL for '{}': {}", saved.getName(), e.getMessage());
+            }
+        }
+
+        return saved;
     }
 
     private String extractGeminiText(JsonNode root) {
@@ -301,13 +319,5 @@ public class HealthyMealNotificationService {
         }
     }
 
-    private String escapeRegex(String input) {
-        return input.replaceAll("([\\\\+*?\\[^\\]$(){}=!<>|:\\-#])", "\\\\$1");
-    }
-
-    /**
-     * name        — display name in the country's official language (e.g. "পাঙাশ ভুনা")
-     * nameEnglish — romanized English name used for DB lookup and Gemini prompts (e.g. "Pangash Bhuna")
-     */
-    private record SuggestedMeal(String name, String nameEnglish, String title, String body) {}
+    private record SeedResult(RecipeCacheEntity entity, String title, String body) {}
 }

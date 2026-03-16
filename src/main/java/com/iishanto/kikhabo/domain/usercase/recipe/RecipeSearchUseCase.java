@@ -9,6 +9,7 @@ import com.iishanto.kikhabo.infrastructure.services.recipe.RecommendationService
 import com.iishanto.kikhabo.web.dto.recipe.RecipeDto;
 import com.iishanto.kikhabo.web.dto.recipe.RecipePageResponse;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -70,7 +71,8 @@ public class RecipeSearchUseCase {
         if (page < mysqlTotalPages) {
             // Serve from MySQL
             List<RecipeCacheEntity> cached = recipeCacheRepository
-                    .findByCountryIgnoreCaseAndExcludedFalse(country, PageRequest.of(page, size));
+                    .findByCountryIgnoreCaseAndExcludedFalse(country,
+                            PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "cachedAt")));
             List<RecipeDto> dtos = cached.stream().map(RecipeDto::fromCache).toList();
 
             // Total is MySQL count + MongoDB count for accurate pagination

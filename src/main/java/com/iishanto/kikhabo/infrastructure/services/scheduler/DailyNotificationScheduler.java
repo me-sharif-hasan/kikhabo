@@ -39,8 +39,6 @@ import java.util.stream.IntStream;
 @AllArgsConstructor
 public class DailyNotificationScheduler {
 
-
-
     private final NotificationContentDataSource notificationContentDataSource;
     private final FcmTokenDataSource fcmTokenDataSource;
     private final NotificationDataSource notificationDataSource;
@@ -53,7 +51,7 @@ public class DailyNotificationScheduler {
      * Uses UTC cron — the hour-matching against local country time happens inside.
      */
     // every min
-    @Scheduled(cron = "0 0 * * * *")
+    //@Scheduled(cron = "0 0 * * * *")
     public void sendScheduledNotifications() {
         logger.info("[Scheduler] Hourly notification check triggered");
 
@@ -167,7 +165,7 @@ public class DailyNotificationScheduler {
      * Sends a HEALTHY_MEAL notification at 12:00 (lunch) and 19:00 (dinner) in each country's local time.
      * Generates at most 3 recipe variants per country — one per user group.
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void sendHealthyMealNotifications() {logger.info("[HealthyMeal] Hourly healthy meal check triggered");
 
         List<Long> allUserIds = new ArrayList<>(fcmTokenDataSource.getAllUserIdsWithTokens());

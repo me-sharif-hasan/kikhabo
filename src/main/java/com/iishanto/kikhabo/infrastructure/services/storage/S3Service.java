@@ -35,6 +35,20 @@ public class S3Service {
                 .formatted(s3Properties.getBucketName(), s3Properties.getRegion(), key);
     }
 
+    public String uploadBytes(byte[] bytes, String contentType, String folder, String extension) {
+        String key = folder + "/" + UUID.randomUUID() + extension;
+        s3Client.putObject(
+                PutObjectRequest.builder()
+                        .bucket(s3Properties.getBucketName())
+                        .key(key)
+                        .contentType(contentType)
+                        .build(),
+                RequestBody.fromBytes(bytes)
+        );
+        return "https://%s.s3.%s.amazonaws.com/%s"
+                .formatted(s3Properties.getBucketName(), s3Properties.getRegion(), key);
+    }
+
     private String getExtension(String filename) {
         if (filename == null || !filename.contains(".")) return "";
         return filename.substring(filename.lastIndexOf('.'));

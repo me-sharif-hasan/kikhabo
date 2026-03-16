@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "recipe_cache")
+@Table(name = "recipe_cache", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_mongo_country", columnNames = {"mongo_id", "country"})
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -31,7 +33,7 @@ public class RecipeCacheEntity {
     /**
      * Original MongoDB _id. Null for Gemini-generated recipes.
      */
-    @Column(name = "mongo_id", unique = true, length = 24)
+    @Column(name = "mongo_id", length = 24)
     private String mongoId;
 
     @Column(nullable = false, length = 500)
@@ -40,7 +42,7 @@ public class RecipeCacheEntity {
     /**
      * Lowercase trimmed name — dedup key for name-based lookups (e.g. from scheduler).
      */
-    @Column(name = "name_normalized", nullable = false, unique = true, length = 500)
+    @Column(name = "name_normalized", length = 500)
     private String nameNormalized;
 
     @Column(columnDefinition = "TEXT")
