@@ -1,5 +1,6 @@
 package com.iishanto.kikhabo.web.dto.recipe;
 
+import com.iishanto.kikhabo.infrastructure.model.RecipeCacheEntity;
 import com.iishanto.kikhabo.infrastructure.model.RecipeDocument;
 import lombok.Data;
 
@@ -19,6 +20,24 @@ public class RecipeDetailDto {
     private String description;
     private String country;
     private String cookingGuide;   // null if generation failed, populated otherwise
+
+    public static RecipeDetailDto fromCache(RecipeCacheEntity cached) {
+        RecipeDetailDto dto = new RecipeDetailDto();
+        dto.id = cached.getRecipeId();
+        dto.name = cached.getName();
+        dto.ingredients = cached.getIngredients();
+        dto.source = cached.getSource();
+        dto.url = cached.getUrl();
+        dto.image = cached.getImage();
+        dto.cookTime = cached.getCookTime();
+        dto.prepTime = cached.getPrepTime();
+        dto.recipeYield = cached.getRecipeYield();
+        dto.datePublished = cached.getDatePublished();
+        dto.description = cached.getDescription();
+        dto.country = cached.getCountry();
+        dto.cookingGuide = cached.getCookingGuide();
+        return dto;
+    }
 
     public static RecipeDetailDto from(RecipeDocument doc, String cookingGuide) {
         RecipeDetailDto dto = new RecipeDetailDto();

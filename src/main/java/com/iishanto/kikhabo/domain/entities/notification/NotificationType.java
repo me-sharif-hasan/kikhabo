@@ -1,9 +1,13 @@
 package com.iishanto.kikhabo.domain.entities.notification;
 
+import lombok.Getter;
+
+@Getter
 public enum NotificationType {
 
     MEAL_LIST("meal_list", "kikhabo_reminders", false, "/dashboard/meals"),
     STREAK_REMINDER("streak_reminder", "kikhabo_reminders", false, "/dashboard/home"),
+    HEALTHY_MEAL("healthy_meal", "kikhabo_reminders", false, "/dashboard/recipes"),
     ACHIEVEMENT("achievement", "kikhabo_gamification", true, "/dashboard/profile"),
     POINTS_EARNED("points_earned", "kikhabo_gamification", true, "/dashboard/statistics"),
     CHALLENGE("challenge", "kikhabo_gamification", true, "/dashboard/statistics"),
@@ -21,26 +25,4 @@ public enum NotificationType {
         this.defaultRoute = defaultRoute;
     }
 
-    public String getValue() {
-        return value;
-    }
-
-    public String getChannelId() {
-        return channelId;
-    }
-
-    public boolean isHighPriority() {
-        return highPriority;
-    }
-
-    public String getDefaultRoute() {
-        return defaultRoute;
-    }
-
-    public static NotificationType fromValue(String value) {
-        for (NotificationType type : values()) {
-            if (type.value.equals(value)) return type;
-        }
-        throw new IllegalArgumentException("Unknown NotificationType value: " + value);
-    }
 }

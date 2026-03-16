@@ -7,6 +7,7 @@ import com.iishanto.kikhabo.domain.datasource.UserDataSource;
 import com.iishanto.kikhabo.domain.entities.notification.FcmNotification;
 import com.iishanto.kikhabo.domain.entities.notification.NotificationVariant;
 import com.iishanto.kikhabo.domain.entities.notification.NotificationType;
+import com.iishanto.kikhabo.infrastructure.services.notification.HealthyMealNotificationService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -44,6 +45,7 @@ public class DailyNotificationScheduler {
     private final FcmTokenDataSource fcmTokenDataSource;
     private final NotificationDataSource notificationDataSource;
     private final UserDataSource userDataSource;
+    private final HealthyMealNotificationService healthyMealNotificationService;
     private final Logger logger;
 
     /**
@@ -114,7 +116,7 @@ public class DailyNotificationScheduler {
                 logger.warn("[Scheduler] No variant generated for user {} ({}), skipping", userId, country);
                 continue;
             }
-            notificationDataSource.sendToUser(userId, buildNotification(variants.getFirst()));
+            notificationDataSource.sendToUser(userId, buildStreakNotification(variants.getFirst()));
             logger.info("[Scheduler] Sent unique '{}' notification to user {} ({})", timeSlot, userId, country);
         }
     }
@@ -133,7 +135,7 @@ public class DailyNotificationScheduler {
             return;
         }
 
-        int groupCount = variants.size(); // may be < 3 if AI returned fewer
+        int groupCount = variants.size();
         List<Long> shuffled = new ArrayList<>(userIds);
         Collections.shuffle(shuffled);
 
@@ -149,7 +151,7 @@ public class DailyNotificationScheduler {
             List<Long> group = groups.getOrDefault(i, List.of());
             if (group.isEmpty()) continue;
 
-            FcmNotification notification = buildNotification(variant);
+            FcmNotification notification = buildStreakNotification(variant);
             logger.info("[Scheduler] Sending variant {} to {} user(s) in {} ({})",
                     i + 1, group.size(), country, timeSlot);
             for (Long userId : group) {
@@ -157,6 +159,77 @@ public class DailyNotificationScheduler {
             }
         }
     }
+
+    // ── Healthy Meal Schedule ─────────────────────────────────────────────────
+
+    /**
+     * Fires every hour alongside the main scheduler.
+     * Sends a HEALTHY_MEAL notification at 12:00 (lunch) and 19:00 (dinner) in each country's local time.
+     * Generates at most 3 recipe variants per country — one per user group.
+     */
+    @Scheduled(cron = "0 0 * * * *")
+    public void sendHealthyMealNotifications() {logger.info("[HealthyMeal] Hourly healthy meal check triggered");
+
+        List<Long> allUserIds = new ArrayList<>(fcmTokenDataSource.getAllUserIdsWithTokens());
+        if (allUserIds.isEmpty()) return;
+
+        List<String> countries = userDataSource.getDistinctCountriesForUsers(allUserIds);
+        if (countries.isEmpty()) countries = List.of("USA");
+
+        for (String country : countries) {
+            ZoneId zoneId = CountryTimeZoneHelper.getZoneId(country);
+            int localHour = ZonedDateTime.now(zoneId).getHour();
+
+            String timeSlot = resolveHealthyMealSlot(localHour);
+            if (timeSlot == null) continue;
+
+            logger.info("[HealthyMeal] {} → local hour {} → slot '{}', dispatching healthy meal", country, localHour, timeSlot);
+
+            List<Long> countryUserIds = userDataSource.getUserIdsByCountry(country, allUserIds);
+            if (countryUserIds.isEmpty()) continue;
+
+            String language = CountryTimeZoneHelper.getLanguage(country);
+
+            int variantCount = countryUserIds.size() < 3 ? 1 : 3;
+            List<NotificationVariant> variants =
+                    healthyMealNotificationService.generateVariants(country, language, timeSlot, variantCount);
+
+            if (variants.isEmpty()) {
+                logger.warn("[HealthyMeal] No variants generated for country={}, skipping", country);
+                continue;
+            }
+
+            sendHealthyMealGrouped(variants, countryUserIds, country, timeSlot);
+        }
+
+        logger.info("[HealthyMeal] Hourly healthy meal pass complete");
+    }
+
+    private void sendHealthyMealGrouped(List<NotificationVariant> variants, List<Long> userIds,
+                                        String country, String timeSlot) {
+        int groupCount = variants.size();
+        List<Long> shuffled = new ArrayList<>(userIds);
+        Collections.shuffle(shuffled);
+
+        Map<Integer, List<Long>> groups = IntStream.range(0, shuffled.size())
+                .boxed()
+                .collect(Collectors.groupingBy(
+                        i -> i % groupCount,
+                        Collectors.mapping(shuffled::get, Collectors.toList())
+                ));
+
+        for (int i = 0; i < groupCount; i++) {
+            List<Long> group = groups.getOrDefault(i, List.of());
+            if (group.isEmpty()) continue;
+            FcmNotification notification = buildHealthyMealNotification(variants.get(i));
+            logger.info("[HealthyMeal] Sending variant {} to {} user(s) in {} ({})", i + 1, group.size(), country, timeSlot);
+            for (Long userId : group) {
+                notificationDataSource.sendToUser(userId, notification);
+            }
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     /** Returns the time-slot label if {@code hour} is a trigger hour, otherwise null. */
     private String resolveTimeSlot(int hour) {
@@ -168,9 +241,27 @@ public class DailyNotificationScheduler {
         };
     }
 
-    private FcmNotification buildNotification(NotificationVariant variant) {
+    /** Healthy meal fires at lunch (12) and dinner (19). */
+    private String resolveHealthyMealSlot(int hour) {
+        return switch (hour) {
+            case 12 -> "lunch";
+            case 19 -> "dinner";
+            default -> null;
+        };
+    }
+
+    private FcmNotification buildStreakNotification(NotificationVariant variant) {
         return FcmNotification.builder()
                 .type(NotificationType.STREAK_REMINDER)
+                .title(variant.getTitle())
+                .body(variant.getBody())
+                .extra(variant.getExtra())
+                .build();
+    }
+
+    private FcmNotification buildHealthyMealNotification(NotificationVariant variant) {
+        return FcmNotification.builder()
+                .type(NotificationType.HEALTHY_MEAL)
                 .title(variant.getTitle())
                 .body(variant.getBody())
                 .extra(variant.getExtra())

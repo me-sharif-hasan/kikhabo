@@ -1,7 +1,9 @@
 package com.iishanto.kikhabo.domain.usercase.recipe;
 
 import com.iishanto.kikhabo.domain.datasource.UserDataSource;
+import com.iishanto.kikhabo.infrastructure.model.RecipeCacheEntity;
 import com.iishanto.kikhabo.infrastructure.model.RecipeDocument;
+import com.iishanto.kikhabo.infrastructure.repositories.database.RecipeCacheRepository;
 import com.iishanto.kikhabo.infrastructure.services.recipe.CountryService;
 import com.iishanto.kikhabo.infrastructure.services.recipe.RecommendationService;
 import com.iishanto.kikhabo.web.dto.recipe.RecipeDto;
@@ -23,78 +25,127 @@ public class RecipeSearchUseCase {
     private final RecommendationService recommendationService;
     private final CountryService countryService;
     private final UserDataSource userDataSource;
+    private final RecipeCacheRepository recipeCacheRepository;
+
     public RecipeSearchUseCase(MongoTemplate mongoTemplate,
                                RecommendationService recommendationService,
                                CountryService countryService,
-                               UserDataSource userDataSource) {
+                               UserDataSource userDataSource,
+                               RecipeCacheRepository recipeCacheRepository) {
         this.mongoTemplate = mongoTemplate;
         this.recommendationService = recommendationService;
         this.countryService = countryService;
         this.userDataSource = userDataSource;
+        this.recipeCacheRepository = recipeCacheRepository;
     }
 
     /**
-     * @param search       free-text query — when provided, recommendation terms are ignored
-     * @param continent    explicit continent filter (recommendation mode only)
-     * @param subcontinent explicit subcontinent filter (recommendation mode only)
-     * @param page         0-based page number
-     * @param size         page size (max 50)
-     *
-     * Priority when no search query:
-     *   1. explicit continent param
-     *   2. continent inferred from authenticated user's country
-     *   3. broad fallback
+     * Recommendation mode (no search query):
+     *   - Page comes from MySQL recipe_cache first, filtered by user's country.
+     *   - Once MySQL pages are exhausted, falls back to MongoDB tag-based search.
+     * Search mode (search query provided):
+     *   - MongoDB full-text search only (tags/text index).
      */
     public RecipePageResponse execute(String search, String continent, String subcontinent, int page, int size) {
         size = Math.min(size, 50);
 
         boolean isSearch = search != null && !search.isBlank();
 
-        TextCriteria criteria;
-        if (isSearch) {
-            criteria = buildSearchCriteria(search.trim());
-        } else {
-            String resolvedContinent    = continent;
-            String resolvedSubcontinent = subcontinent;
-
-            // no explicit continent — try to infer from user's country
-            if (resolvedContinent == null || resolvedContinent.isBlank()) {
-                CountryService.Region region = resolveUserRegion();
-                if (region != null) {
-                    resolvedContinent    = region.getContinent();
-                    resolvedSubcontinent = region.getSubcontinent();
-                }
+        if (!isSearch) {
+            String userCountry = resolveUserCountry();
+            if (userCountry != null) {
+                return executeWithMysqlFirst(userCountry, continent, subcontinent, page, size);
             }
-
-            criteria = buildRecommendationCriteria(resolvedContinent, resolvedSubcontinent);
         }
 
-        Criteria exclusion = buildExclusionCriteria();
-        Criteria hasImage = Criteria.where("image").exists(true).nin(null, "");
+        return executeMongoOnly(search, continent, subcontinent, page, size);
+    }
+
+    // ── MySQL-first recommendation (when user country is known) ───────────────
+
+    private RecipePageResponse executeWithMysqlFirst(String country, String continent, String subcontinent, int page, int size) {
+        long mysqlCount = recipeCacheRepository.countByCountryIgnoreCaseAndExcludedFalse(country);
+        long mysqlTotalPages = (long) Math.ceil((double) mysqlCount / size);
+
+        if (page < mysqlTotalPages) {
+            // Serve from MySQL
+            List<RecipeCacheEntity> cached = recipeCacheRepository
+                    .findByCountryIgnoreCaseAndExcludedFalse(country, PageRequest.of(page, size));
+            List<RecipeDto> dtos = cached.stream().map(RecipeDto::fromCache).toList();
+
+            // Total is MySQL count + MongoDB count for accurate pagination
+            long mongoTotal = countMongo(country, continent, subcontinent);
+            long total = mysqlCount + mongoTotal;
+            int totalPages = (int) Math.ceil((double) total / size);
+
+            return new RecipePageResponse(dtos, total, totalPages, page, size, "recommendation");
+        }
+
+        // MySQL exhausted — fall back to MongoDB with adjusted page
+        int mongoPage = (int) (page - mysqlTotalPages);
+        TextCriteria criteria = buildRecommendationCriteria(
+                resolveContinent(country, continent), subcontinent);
+        return queryMongo(criteria, mongoPage, size, page, mysqlCount);
+    }
+
+    // ── MongoDB-only (search mode or no country) ──────────────────────────────
+
+    private RecipePageResponse executeMongoOnly(String search, String continent, String subcontinent, int page, int size) {
+        boolean isSearch = search != null && !search.isBlank();
+
+        TextCriteria criteria = isSearch
+                ? TextCriteria.forDefaultLanguage().matching(search.trim())
+                : buildRecommendationCriteria(continent, subcontinent);
+
+        return queryMongo(criteria, page, size, page, 0);
+    }
+
+    private RecipePageResponse queryMongo(TextCriteria criteria, int mongoPage, int size, int responsePage, long mysqlOffset) {
+        Criteria exclusion = Criteria.where("excluded").ne(true);
+        Criteria hasImage  = Criteria.where("image").exists(true).nin(null, "");
 
         Query query = TextQuery.queryText(criteria).sortByScore();
         query.addCriteria(exclusion);
         query.addCriteria(hasImage);
-        query.with(PageRequest.of(page, size));
+        query.with(PageRequest.of(mongoPage, size));
 
         Query countQuery = TextQuery.queryText(criteria);
         countQuery.addCriteria(exclusion);
         countQuery.addCriteria(hasImage);
 
         List<RecipeDocument> docs = mongoTemplate.find(query, RecipeDocument.class);
-        long total = mongoTemplate.count(countQuery, RecipeDocument.class);
+        long mongoTotal = mongoTemplate.count(countQuery, RecipeDocument.class);
 
         List<RecipeDto> dtos = docs.stream().map(RecipeDto::from).toList();
+        long total = mysqlOffset + mongoTotal;
         int totalPages = (int) Math.ceil((double) total / size);
 
-        return new RecipePageResponse(dtos, total, totalPages, page, size,
-                isSearch ? "search" : "recommendation");
+        return new RecipePageResponse(dtos, total, totalPages, responsePage, size, "recommendation");
     }
 
-    // ── private helpers ───────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private TextCriteria buildSearchCriteria(String query) {
-        return TextCriteria.forDefaultLanguage().matching(query);
+    private long countMongo(String country, String continent, String subcontinent) {
+        try {
+            String resolvedContinent = resolveContinent(country, continent);
+            TextCriteria criteria = buildRecommendationCriteria(resolvedContinent, subcontinent);
+            Query countQuery = TextQuery.queryText(criteria);
+            countQuery.addCriteria(Criteria.where("excluded").ne(true));
+            countQuery.addCriteria(Criteria.where("image").exists(true).nin(null, ""));
+            return mongoTemplate.count(countQuery, RecipeDocument.class);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private String resolveContinent(String country, String explicitContinent) {
+        if (explicitContinent != null && !explicitContinent.isBlank()) return explicitContinent;
+        try {
+            CountryService.Region region = countryService.resolve(country);
+            return region != null ? region.getContinent() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private TextCriteria buildRecommendationCriteria(String continent, String subcontinent) {
@@ -105,21 +156,12 @@ public class RecipeSearchUseCase {
         return TextCriteria.forDefaultLanguage().matchingAny(terms.toArray(new String[0]));
     }
 
-    /**
-     * Excludes recipes tagged at startup as containing prohibited food.
-     * Index-backed field lookup — no regex cost per query.
-     */
-    private Criteria buildExclusionCriteria() {
-        return Criteria.where("excluded").ne(true);
-    }
-
-    /** Resolves the authenticated user's country to a Region. Returns null if unauthenticated or country not set. */
-    private CountryService.Region resolveUserRegion() {
+    private String resolveUserCountry() {
         try {
             String country = userDataSource.getAuthenticatedUser().getCountry();
-            return countryService.resolve(country);
+            return (country != null && !country.isBlank()) ? country : null;
         } catch (Exception e) {
-            return null;  // unauthenticated request or no country on profile
+            return null;
         }
     }
 }
