@@ -183,7 +183,7 @@ public class HealthyMealNotificationService {
                     + "\"cookingGuide\":\"<clear numbered step-by-step guide in " + language + ">\""
                     + "}";
 
-            String seedContext = "Original recipe from database:\n"
+            String seedContext = "Recipe from database:\n"
                     + "Name: " + seed.getName() + "\n"
                     + (seed.getIngredients() != null ? "Ingredients: " + seed.getIngredients() + "\n" : "")
                     + (seed.getDescription() != null ? "Description: " + seed.getDescription() + "\n" : "")
@@ -196,24 +196,24 @@ public class HealthyMealNotificationService {
             com.fasterxml.jackson.databind.node.ArrayNode parts = content.putArray("parts");
 
             parts.addObject().put("text",
-                    "You are a professional chef and cultural food expert. "
-                    + "You will receive a seed recipe and adapt it into a traditional, authentic " + timeSlot + " dish "
-                    + "specifically for home cooks in " + country + ". "
+                    "You are a recipe expert writing a food blog for home cooks in " + country + ". "
+                    + "You have been given a recipe and your job is to present it naturally for your audience. "
+                    + "APPROACH: "
+                    + "- If this recipe has a well-known traditional equivalent or local variant in " + country + ", present that version — use its real local name and authentic preparation. "
+                    + "- If no local variant exists, naturally adapt it for " + country + " home cooks: swap hard-to-find ingredients with locally available ones, adjust seasoning to local taste, and write it as a knowledgeable food blogger would — warm, natural, and authentic-feeling. "
+                    + "- Either way, the result must feel like a real recipe a home cook in " + country + " would actually make for " + timeSlot + ". "
                     + "RULES: "
-                    + "1. The dish must be appropriate for " + timeSlot + " — portion size, ingredients, and cooking style should suit this meal time. "
-                    + "2. Adapt the recipe to use locally available traditional ingredients in " + country + ". "
-                    + "3. The dish must feel genuinely traditional and culturally familiar in " + country + ". "
-                    + "4. 'name' must be written in the official script/language of " + country + " (e.g. Bengali for Bangladesh). "
-                    + "5. 'nameEnglish' must be ASCII Roman alphabet only — no local script characters. "
-                    + "6. All text fields (description, ingredients, cookingGuide, recipeYield) must be in " + language + ". "
-                    + "7. 'title' and 'body' are push notification strings in " + language + " — concise, enticing, culturally resonant, and relevant to " + timeSlot + ". "
-                    + "8. 'cookTime' and 'prepTime' must remain in ISO 8601 format (e.g. PT30M).");
+                    + "1. 'name' must be in the official script/language of " + country + " (e.g. Bengali script for Bangladesh). "
+                    + "2. 'nameEnglish' must be ASCII Roman alphabet only — the natural English name of the dish. "
+                    + "3. All text fields (description, ingredients, cookingGuide, recipeYield) must be in " + language + ". "
+                    + "4. 'title' and 'body' are push notification strings in " + language + " — concise, enticing, written like a food blogger teaser. "
+                    + "5. 'cookTime' and 'prepTime' must remain in ISO 8601 format (e.g. PT30M).");
 
             parts.addObject().put("text", seedContext);
 
             parts.addObject().put("text",
-                    "Using the seed recipe above as context, generate a culturally authentic " + country + " " + timeSlot
-                    + " version. Respond with ONLY valid JSON — no markdown, no extra text. Schema: " + schema);
+                    "Present this recipe naturally for " + country + " home cooks for " + timeSlot
+                    + ". Respond with ONLY valid JSON — no markdown, no extra text. Schema: " + schema);
 
             com.fasterxml.jackson.databind.node.ObjectNode genConfig = root.putObject("generationConfig");
             genConfig.put("responseMimeType", "application/json");
@@ -249,6 +249,7 @@ public class HealthyMealNotificationService {
                     .mongoId(seed.getId())                              // composite dedup: mongoId
                     .name(name)
                     .nameNormalized(nameEnglish.toLowerCase().trim())
+                    .mongoName(seed.getName())                         // original MongoDB name for Pexels search
                     .ingredients(parsed.path("ingredients").asText(seed.getIngredients()))
                     .url(seed.getUrl())
                     .image(seed.getImage())
@@ -296,8 +297,8 @@ public class HealthyMealNotificationService {
             return entity; // still usable even if save fails
         }
 
-        // Always generate a synthetic image — overrides any existing URL
-        String imageUrl = recipeImageService.generateAndUpload(saved);
+        // Resolve image: MongoDB URL → S3 (if valid) or Pexels fallback
+        String imageUrl = recipeImageService.resolveImage(saved);
         if (imageUrl != null) {
             saved.setImage(imageUrl);
             try {

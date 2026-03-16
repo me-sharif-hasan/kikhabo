@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -165,7 +166,7 @@ public class DailyNotificationScheduler {
      * Sends a HEALTHY_MEAL notification at 12:00 (lunch) and 19:00 (dinner) in each country's local time.
      * Generates at most 3 recipe variants per country — one per user group.
      */
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void sendHealthyMealNotifications() {logger.info("[HealthyMeal] Hourly healthy meal check triggered");
 
         List<Long> allUserIds = new ArrayList<>(fcmTokenDataSource.getAllUserIdsWithTokens());
@@ -198,6 +199,11 @@ public class DailyNotificationScheduler {
             }
 
             sendHealthyMealGrouped(variants, countryUserIds, country, timeSlot);
+            try{
+                TimeUnit.MICROSECONDS.sleep(20000);
+            }catch(InterruptedException e){
+                logger.warn("[HealthyMeal] Interrupted while sleeping");
+            }
         }
 
         logger.info("[HealthyMeal] Hourly healthy meal pass complete");

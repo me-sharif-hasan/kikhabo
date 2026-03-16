@@ -11,8 +11,6 @@ public interface RecipeCacheRepository extends JpaRepository<RecipeCacheEntity, 
 
     Optional<RecipeCacheEntity> findByRecipeId(String recipeId);
 
-    Optional<RecipeCacheEntity> findByNameNormalized(String nameNormalized);
-
     /** Composite-key lookup: one MongoDB recipe → one entry per country. */
     Optional<RecipeCacheEntity> findByMongoIdAndCountryIgnoreCase(String mongoId, String country);
 

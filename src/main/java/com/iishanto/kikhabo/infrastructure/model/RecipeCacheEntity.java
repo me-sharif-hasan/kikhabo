@@ -45,6 +45,12 @@ public class RecipeCacheEntity {
     @Column(name = "name_normalized", length = 500)
     private String nameNormalized;
 
+    /**
+     * Original recipe name as stored in MongoDB (English) — used for Pexels image search.
+     */
+    @Column(name = "mongo_name", length = 500)
+    private String mongoName;
+
     @Column(columnDefinition = "TEXT")
     private String ingredients;
 

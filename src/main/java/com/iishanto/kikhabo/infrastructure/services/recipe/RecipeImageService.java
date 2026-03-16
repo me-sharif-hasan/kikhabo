@@ -2,150 +2,143 @@ package com.iishanto.kikhabo.infrastructure.services.recipe;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.iishanto.kikhabo.infrastructure.model.RecipeCacheEntity;
-import com.iishanto.kikhabo.infrastructure.services.config.GeminiKeyService;
 import com.iishanto.kikhabo.infrastructure.services.storage.S3Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Base64;
+import org.springframework.web.client.RestClient;
 
 @Service
 public class RecipeImageService {
 
     private static final Logger log = LoggerFactory.getLogger(RecipeImageService.class);
+    private static final String PIXABAY_SEARCH = "https://pixabay.com/api/";
 
-    private static final int TARGET_WIDTH  = 300;
-    private static final int TARGET_HEIGHT = 256;
-
-    private final GeminiKeyService geminiKeyService;
+    private final RestClient restClient;
     private final S3Service s3Service;
     private final ObjectMapper objectMapper;
-    private final String imageEndpoint;
-    private final String imageApiKey;
+    private final String pixabayApiKey;
 
-    public RecipeImageService(GeminiKeyService geminiKeyService,
+    public RecipeImageService(RestClient restClient,
                                S3Service s3Service,
                                ObjectMapper objectMapper,
-                               @Value("${google.gemini.image.endpoint}") String imageEndpoint,
-                               @Value("${google.gemini.image.apikey:}") String imageApiKey) {
-        this.geminiKeyService = geminiKeyService;
+                               @Value("${pixabay.apikey}") String pixabayApiKey) {
+        this.restClient = restClient;
         this.s3Service = s3Service;
         this.objectMapper = objectMapper;
-        this.imageEndpoint = imageEndpoint;
-        this.imageApiKey = imageApiKey;
+        this.pixabayApiKey = pixabayApiKey;
     }
 
     /**
-     * Generates a hyperrealistic 300×256 food photo for the recipe using Gemini image generation,
-     * resizes it, uploads to S3, and returns the public URL.
-     *
-     * Triggered whenever a new recipe is persisted to the MySQL cache from a MongoDB seed.
-     * Returns null on any failure — image is treated as optional by the caller.
+     * Resolves the best available image for a cached recipe:
+     *   1. If the recipe has a MongoDB image URL: download it, verify it is a real image,
+     *      upload to S3 (so we own the copy), and return the S3 URL.
+     *   2. If the MongoDB image is missing, unreachable, or not an image: fall back to Pexels.
+     * Returns null on total failure — image is optional for the caller.
      */
-    public String generateAndUpload(RecipeCacheEntity recipe) {
+    public String resolveImage(RecipeCacheEntity recipe) {
+        String mongoImageUrl = recipe.getImage();
+
+        if (mongoImageUrl != null && !mongoImageUrl.isBlank()) {
+            log.info("[RecipeImage] Trying MongoDB image for recipe='{}' url='{}'", recipe.getName(), mongoImageUrl);
+            String s3Url = downloadAndUpload(mongoImageUrl, recipe.getName());
+            if (s3Url != null) return s3Url;
+            log.warn("[RecipeImage] MongoDB image invalid or unreachable for recipe='{}', falling back to Pexels", recipe.getName());
+        } else {
+            log.info("[RecipeImage] No MongoDB image for recipe='{}', going to Pexels", recipe.getName());
+        }
+
+        return fetchFromPixabay(recipe);
+    }
+
+    // ── Step 1: download MongoDB image → verify → upload to S3 ───────────────
+
+    private String downloadAndUpload(String url, String recipeName) {
         try {
-            String prompt = buildImagePrompt(recipe);
-            String requestBody = buildRequestBody(prompt);
+            ResponseEntity<byte[]> response = restClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .toEntity(byte[].class);
 
-            log.info("[RecipeImage] Requesting image generation for '{}'", recipe.getName());
-            String response = geminiKeyService.execute(
-                    imageEndpoint, requestBody, GeminiKeyService.GROUP_VISION, imageApiKey);
-
-            if (response == null) {
-                log.warn("[RecipeImage] Gemini returned null for recipe='{}'", recipe.getName());
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.warn("[RecipeImage] Non-2xx ({}) downloading image for recipe='{}'",
+                        response.getStatusCode(), recipeName);
                 return null;
             }
 
-            byte[] imageBytes = extractAndResize(response);
-            if (imageBytes == null) return null;
+            MediaType contentType = response.getHeaders().getContentType();
+            if (contentType == null || !contentType.getType().equals("image")) {
+                log.warn("[RecipeImage] Content-Type '{}' is not an image for recipe='{}'",
+                        contentType, recipeName);
+                return null;
+            }
 
-            String url = s3Service.uploadBytes(imageBytes, "image/png", "recipe-images", ".png");
-            log.info("[RecipeImage] Uploaded image for '{}' → {}", recipe.getName(), url);
+            byte[] bytes = response.getBody();
+            if (bytes == null || bytes.length == 0) {
+                log.warn("[RecipeImage] Empty body downloading image for recipe='{}'", recipeName);
+                return null;
+            }
+
+            String extension = "." + contentType.getSubtype().split(";")[0]; // e.g. ".jpeg"
+            String s3Url = s3Service.uploadBytes(bytes, contentType.toString(), "recipe-images", extension);
+            log.info("[RecipeImage] MongoDB image uploaded to S3 for recipe='{}' → {}", recipeName, s3Url);
+            return s3Url;
+
+        } catch (Exception e) {
+            log.warn("[RecipeImage] Failed to download/upload MongoDB image for recipe='{}': {}", recipeName, e.getMessage());
+            return null;
+        }
+    }
+
+    // ── Step 2: Pixabay fallback (direct URL, no S3) ─────────────────────────
+
+    private String fetchFromPixabay(RecipeCacheEntity recipe) {
+        String query = recipe.getNameNormalized();
+        if (query == null || query.isBlank()) {
+            log.warn("[RecipeImage] Skipping Pixabay — no normalized name for recipe='{}'", recipe.getName());
+            return null;
+        }
+
+        log.info("[RecipeImage] Searching Pixabay for query='{}'", query);
+        try {
+            String encodedQuery = java.net.URLEncoder.encode(query, java.nio.charset.StandardCharsets.UTF_8);
+            String response = restClient.get()
+                    .uri(PIXABAY_SEARCH + "?key=" + pixabayApiKey
+                            + "&q=" + encodedQuery
+                            + "&image_type=photo"
+                            + "&category=food"
+                            + "&orientation=horizontal"
+                            + "&safesearch=true"
+                            + "&per_page=3"
+                            + "&order=popular")
+                    .retrieve()
+                    .body(String.class);
+
+            if (response == null) {
+                log.warn("[RecipeImage] Empty response from Pixabay for query='{}'", query);
+                return null;
+            }
+
+            JsonNode root = objectMapper.readTree(response);
+            long totalHits = root.path("totalHits").asLong(0);
+            log.debug("[RecipeImage] Pixabay returned {} hits for query='{}'", totalHits, query);
+
+            String url = root.path("hits").path(0).path("webformatURL").asText(null);
+            if (url == null || url.isBlank()) {
+                log.warn("[RecipeImage] No hits in Pixabay response for query='{}' (totalHits={})", query, totalHits);
+                return null;
+            }
+
+            log.info("[RecipeImage] Pixabay image resolved for recipe='{}' query='{}' → {}", recipe.getName(), query, url);
             return url;
 
         } catch (Exception e) {
-            log.error("[RecipeImage] Failed for '{}': {}", recipe.getName(), e.getMessage());
+            log.error("[RecipeImage] Pixabay request failed for query='{}': {}", query, e.getMessage());
             return null;
         }
-    }
-
-    // ── Prompt ───────────────────────────────────────────────────────────────
-
-    private String buildImagePrompt(RecipeCacheEntity recipe) {
-        String name        = recipe.getName()        != null ? recipe.getName()        : "traditional dish";
-        String country     = recipe.getCountry()     != null ? recipe.getCountry()     : "local";
-        String description = recipe.getDescription() != null ? recipe.getDescription() : "";
-
-        return "Hyperrealistic professional food photography of " + name
-                + ", a traditional " + country + " dish"
-                + (description.isBlank() ? "" : ". " + description)
-                + ". Plated on authentic " + country + " serving ware, beautifully garnished."
-                + " Slightly angled top-down view, warm studio lighting, ultra sharp focus,"
-                + " rich vibrant colours, 4K food photography, magazine quality.";
-    }
-
-    // ── Request body ─────────────────────────────────────────────────────────
-
-    private String buildRequestBody(String prompt) throws Exception {
-        ObjectNode root = objectMapper.createObjectNode();
-        ArrayNode contents = root.putArray("contents");
-        ArrayNode parts = contents.addObject().putArray("parts");
-        parts.addObject().put("text", prompt);
-
-        // Tell Gemini we want an image back, not text
-        root.putObject("generationConfig")
-                .putArray("responseModalities")
-                .add("IMAGE");
-
-        return objectMapper.writeValueAsString(root);
-    }
-
-    // ── Response parsing + resize ─────────────────────────────────────────────
-
-    private byte[] extractAndResize(String rawResponse) {
-        try {
-            JsonNode root = objectMapper.readTree(rawResponse);
-            JsonNode parts = root.path("candidates").path(0).path("content").path("parts");
-
-            for (JsonNode part : parts) {
-                JsonNode inlineData = part.path("inlineData");
-                if (!inlineData.isMissingNode()) {
-                    byte[] raw = Base64.getDecoder().decode(inlineData.path("data").asText());
-                    return resizeTo300x256(raw);
-                }
-            }
-            log.warn("[RecipeImage] No inlineData in Gemini response");
-            return null;
-        } catch (Exception e) {
-            log.error("[RecipeImage] Failed to extract/resize image: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    private byte[] resizeTo300x256(byte[] original) throws Exception {
-        BufferedImage src = ImageIO.read(new ByteArrayInputStream(original));
-        if (src == null) throw new IllegalArgumentException("Cannot decode image bytes from Gemini");
-
-        BufferedImage out = new BufferedImage(TARGET_WIDTH, TARGET_HEIGHT, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = out.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING,     RenderingHints.VALUE_RENDER_QUALITY);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,  RenderingHints.VALUE_ANTIALIAS_ON);
-        g.drawImage(src.getScaledInstance(TARGET_WIDTH, TARGET_HEIGHT, Image.SCALE_SMOOTH), 0, 0, null);
-        g.dispose();
-
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        ImageIO.write(out, "png", buf);
-        return buf.toByteArray();
     }
 }
