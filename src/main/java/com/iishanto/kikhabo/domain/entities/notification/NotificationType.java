@@ -12,7 +12,8 @@ public enum NotificationType {
     POINTS_EARNED("points_earned", "kikhabo_gamification", true, "/dashboard/statistics"),
     CHALLENGE("challenge", "kikhabo_gamification", true, "/dashboard/statistics"),
     FAMILY_ACTIVITY("family_activity", "kikhabo_reminders", false, "/dashboard/family"),
-    FESTIVAL_MEAL("festival_meal", "kikhabo_reminders", false, "/dashboard/recipes");
+    // TODO: Change type value to "festival_meal" once frontend adds a handler for it (same logic as healthy_meal)
+    FESTIVAL_MEAL("healthy_meal", "kikhabo_reminders", false, "/dashboard/recipes");
 
     private final String value;
     private final String channelId;

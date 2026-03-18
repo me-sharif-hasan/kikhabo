@@ -79,7 +79,7 @@ public class FestivalMealNotificationService {
 
         // Dedup: one festival recipe per country per date
         Optional<RecipeCacheEntity> cached = recipeCacheRepository
-                .findBySourceAndCountryIgnoreCaseAndDatePublished("festival-gemini", country, festivalDate);
+                .findFirstBySourceAndCountryIgnoreCaseAndDatePublished("festival-gemini", country, festivalDate);
         if (cached.isPresent()) {
             log.info("[FestivalMeal] Cache hit for festival='{}' country='{}'", festivalName, country);
             RecipeCacheEntity entity = cached.get();
