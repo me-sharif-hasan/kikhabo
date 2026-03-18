@@ -25,5 +25,8 @@ public interface RecipeCacheRepository extends JpaRepository<RecipeCacheEntity, 
     /** Fallback lookup when a duplicate name_normalized conflict occurs on save. */
     Optional<RecipeCacheEntity> findByNameNormalizedAndCountryIgnoreCase(String nameNormalized, String country);
 
+    /** Bulk lookup by recipeId (public-facing UUID/string ID). */
+    List<RecipeCacheEntity> findByRecipeIdIn(List<String> recipeIds);
+
     long countByCountryIgnoreCaseAndExcludedFalse(String country);
 }
