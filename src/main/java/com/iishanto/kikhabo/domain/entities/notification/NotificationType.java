@@ -11,7 +11,8 @@ public enum NotificationType {
     ACHIEVEMENT("achievement", "kikhabo_gamification", true, "/dashboard/profile"),
     POINTS_EARNED("points_earned", "kikhabo_gamification", true, "/dashboard/statistics"),
     CHALLENGE("challenge", "kikhabo_gamification", true, "/dashboard/statistics"),
-    FAMILY_ACTIVITY("family_activity", "kikhabo_reminders", false, "/dashboard/family");
+    FAMILY_ACTIVITY("family_activity", "kikhabo_reminders", false, "/dashboard/family"),
+    FESTIVAL_MEAL("festival_meal", "kikhabo_reminders", false, "/dashboard/recipes");
 
     private final String value;
     private final String channelId;

@@ -10,7 +10,8 @@
       "Bash(mvn compile:*)",
       "Bash(git stash:*)",
       "Bash(xargs cat:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ]
   }
 }
