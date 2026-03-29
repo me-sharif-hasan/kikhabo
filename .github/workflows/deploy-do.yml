@@ -50,6 +50,7 @@ jobs:
           kikhabo.admin.api-key=${{ secrets.ADMIN_API_KEY }}
           spring.data.mongodb.uri=${{ secrets.MONGODB_URI }}
           pixabay.apikey=${{ secrets.PIXABAY_KEY }}
+          calendarific.api.key=${{ secrets.CALENDARIFIC_KEY }}
           EOT
 
           cat src/main/resources/application-prod.properties
@@ -120,4 +121,5 @@ jobs:
           ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           PIXABAY_KEY: ${{ secrets.PIXABAY_KEY }}
+          CALENDARIFIC_KEY: ${{ secrets.CALENDARIFIC_KEY }}
 

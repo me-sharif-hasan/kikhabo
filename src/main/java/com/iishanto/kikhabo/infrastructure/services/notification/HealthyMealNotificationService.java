@@ -97,6 +97,7 @@ public class HealthyMealNotificationService {
                     .title(result.title())
                     .body(result.body())
                     .extra(extra)
+                    .imageUrl(result.entity().getImage())
                     .build());
             log.info("[HealthyMeal] Variant resolved: recipe='{}' id='{}' country={}",
                     result.entity().getName(), result.entity().getRecipeId(), country);
@@ -172,7 +173,7 @@ public class HealthyMealNotificationService {
         try {
             String schema = "{"
                     + "\"name\":\"<dish name in " + country + "s official script>\","
-                    + "\"nameEnglish\":\"<dish name in English Roman alphabet only>\","
+                    + "\"nameEnglish\":\"<the ENGLISH TRANSLATION of the dish — what an English speaker would call it (e.g. 'Chicken Pilaf', 'Lamb Curry'). NOT a transliteration. Plain ASCII only, no diacritics>\","
                     + "\"title\":\"<push notification title in " + language + ", max 50 chars>\","
                     + "\"body\":\"<push notification body in " + language + ", max 100 chars, highlight health benefits>\","
                     + "\"ingredients\":\"<adapted comma-separated ingredient list for " + country + ">\","
@@ -204,7 +205,10 @@ public class HealthyMealNotificationService {
                     + "- Either way, the result must feel like a real recipe a home cook in " + country + " would actually make for " + timeSlot + ". "
                     + "RULES: "
                     + "1. 'name' must be in the official script/language of " + country + " (e.g. Bengali script for Bangladesh). "
-                    + "2. 'nameEnglish' must be ASCII Roman alphabet only — the natural English name of the dish. "
+                    + "2. 'nameEnglish' MUST be the English translation/equivalent of the dish — plain ASCII only, no local script, no diacritics. "
+                    + "   The rule is: translate the meaning, do not romanize the local name. "
+                    + "   For example (illustrative only, not a dish restriction): a chicken rice dish would be 'Chicken Pilaf', not its local transliteration. "
+                    + "   If no standard English name exists, describe it simply in English (e.g. 'Spiced Lamb Rice', 'Sweet Vermicelli Pudding'). "
                     + "3. All text fields (description, ingredients, cookingGuide, recipeYield) must be in " + language + ". "
                     + "4. 'title' and 'body' are push notification strings in " + language + " — concise, enticing, written like a food blogger teaser. "
                     + "5. 'cookTime' and 'prepTime' must remain in ISO 8601 format (e.g. PT30M).");

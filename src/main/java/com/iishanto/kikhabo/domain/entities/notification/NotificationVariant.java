@@ -14,4 +14,5 @@ public class NotificationVariant {
     private String title;
     private String body;
     private String extra;
+    private String imageUrl;
 }

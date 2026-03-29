@@ -30,8 +30,14 @@ public class GetRecipeDetailUseCase {
             return RecipeDetailDto.fromCache(cached);
         }
 
-        // 2. MongoDB fallback
-        RecipeDocument recipe = mongoTemplate.findById(id, RecipeDocument.class);
+        // 2. MongoDB fallback — works for both 24-char ObjectIds and UUIDs
+        // UUIDs will simply return null (not a valid ObjectId, no document exists)
+        RecipeDocument recipe;
+        try {
+            recipe = mongoTemplate.findById(id, RecipeDocument.class);
+        } catch (Exception e) {
+            return null;
+        }
         if (recipe == null) return null;
 
         // 3. Generate cooking guide (Gemini, cached back in Mongo by RecipeGuideService)

@@ -84,6 +84,9 @@ public class RecipeCacheEntity {
     @Column(name = "cooking_guide", columnDefinition = "LONGTEXT")
     private String cookingGuide;
 
+    @Column(name = "recipe_reason", length = 100)
+    private String recipeReason;
+
     @Column(nullable = false)
     private boolean excluded = false;
 

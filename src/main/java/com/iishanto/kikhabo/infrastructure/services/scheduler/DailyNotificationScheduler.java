@@ -7,6 +7,7 @@ import com.iishanto.kikhabo.domain.datasource.UserDataSource;
 import com.iishanto.kikhabo.domain.entities.notification.FcmNotification;
 import com.iishanto.kikhabo.domain.entities.notification.NotificationVariant;
 import com.iishanto.kikhabo.domain.entities.notification.NotificationType;
+import com.iishanto.kikhabo.infrastructure.services.notification.FestivalMealNotificationService;
 import com.iishanto.kikhabo.infrastructure.services.notification.HealthyMealNotificationService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -45,6 +46,7 @@ public class DailyNotificationScheduler {
     private final NotificationDataSource notificationDataSource;
     private final UserDataSource userDataSource;
     private final HealthyMealNotificationService healthyMealNotificationService;
+    private final FestivalMealNotificationService festivalMealNotificationService;
     private final Logger logger;
 
     /**
@@ -209,6 +211,57 @@ public class DailyNotificationScheduler {
         logger.info("[HealthyMeal] Hourly healthy meal pass complete");
     }
 
+    // ── Festival Meal Schedule ────────────────────────────────────────────────
+
+    /**
+     * Fires every hour. For each country whose local time is 08:00, calls Calendarific
+     * to check if today is a public holiday. If yes, Gemini generates a culturally
+     * appropriate festival meal, caches it, and sends a push notification to all
+     * users of that country.
+     */
+    @Scheduled(cron = "0 0 * * * *")
+    public void sendFestivalNotifications() {
+        logger.info("[FestivalMeal] Hourly festival check triggered");
+
+        List<Long> allUserIds = new ArrayList<>(fcmTokenDataSource.getAllUserIdsWithTokens());
+        if (allUserIds.isEmpty()) return;
+
+        List<String> countries = userDataSource.getDistinctCountriesForUsers(allUserIds);
+        if (countries.isEmpty()) countries = List.of("USA");
+
+        for (String country : countries) {
+            ZoneId zoneId = CountryTimeZoneHelper.getZoneId(country);
+            int localHour = ZonedDateTime.now(zoneId).getHour();
+
+            if (localHour != 8) continue;
+
+            logger.info("[FestivalMeal] {} is at 08:00 local — checking for holidays", country);
+
+            List<Long> countryUserIds = userDataSource.getUserIdsByCountry(country, allUserIds);
+            if (countryUserIds.isEmpty()) continue;
+
+            String language = CountryTimeZoneHelper.getLanguage(country);
+
+            festivalMealNotificationService.generateFestivalVariant(country, language)
+                    .ifPresent(variant -> {
+                        FcmNotification notification = FcmNotification.builder()
+                                .type(NotificationType.FESTIVAL_MEAL)
+                                .title(variant.getTitle())
+                                .body(variant.getBody())
+                                .extra(variant.getExtra())
+                                .imageUrl(variant.getImageUrl())
+                                .build();
+                        logger.info("[FestivalMeal] Sending festival notification to {} user(s) in {}",
+                                countryUserIds.size(), country);
+                        for (Long userId : countryUserIds) {
+                            notificationDataSource.sendToUser(userId, notification);
+                        }
+                    });
+        }
+
+        logger.info("[FestivalMeal] Hourly festival pass complete");
+    }
+
     private void sendHealthyMealGrouped(List<NotificationVariant> variants, List<Long> userIds,
                                         String country, String timeSlot) {
         int groupCount = variants.size();
@@ -245,11 +298,12 @@ public class DailyNotificationScheduler {
         };
     }
 
-    /** Healthy meal fires at lunch (12) and dinner (19). */
+    /** Healthy meal fires at breakfast (6), lunch (11) and afternoon snack (16). */
     private String resolveHealthyMealSlot(int hour) {
         return switch (hour) {
-            case 12 -> "lunch";
-            case 19 -> "dinner";
+            case 6  -> "breakfast";
+            case 11 -> "lunch";
+            case 16 -> "afternoon snack";
             default -> null;
         };
     }
@@ -269,6 +323,7 @@ public class DailyNotificationScheduler {
                 .title(variant.getTitle())
                 .body(variant.getBody())
                 .extra(variant.getExtra())
+                .imageUrl(variant.getImageUrl())
                 .build();
     }
 }
