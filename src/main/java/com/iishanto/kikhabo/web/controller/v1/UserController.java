@@ -1,5 +1,6 @@
 package com.iishanto.kikhabo.web.controller.v1;
 
+import com.iishanto.kikhabo.common.exception.user.EmailVerificationException;
 import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureException;
 import com.iishanto.kikhabo.domain.datasource.WeatherDataSource;
 import com.iishanto.kikhabo.domain.entities.people.Credentials;
@@ -7,11 +8,7 @@ import com.iishanto.kikhabo.domain.entities.people.User;
 import com.iishanto.kikhabo.domain.usercase.user.*;
 import com.iishanto.kikhabo.domain.usercase.user.command.out.GetUserResponse;
 import com.iishanto.kikhabo.infrastructure.services.storage.S3Service;
-import com.iishanto.kikhabo.web.dto.user.CredentialsDto;
-import com.iishanto.kikhabo.web.dto.user.LoginResponseDto;
-import com.iishanto.kikhabo.web.dto.user.SocialAuthDto;
-import com.iishanto.kikhabo.web.dto.user.UserDto;
-import com.iishanto.kikhabo.web.dto.user.UserUpdateDto;
+import com.iishanto.kikhabo.web.dto.user.*;
 import com.iishanto.kikhabo.web.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,6 +36,8 @@ public class UserController {
     GetUserUseCase getUserUseCase;
     UserSearchUseCase userSearchUseCase;
     S3Service s3Service;
+    VerifyOtpUseCase verifyOtpUseCase;
+    ResendOtpUseCase resendOtpUseCase;
     Logger logger;
 
     @SecurityRequirements
@@ -91,6 +90,28 @@ public class UserController {
         SuccessResponse<GetUserResponse> successResponse=new SuccessResponse<>();
         successResponse.setData(GetUserResponse.fromDomain(getUserUseCase.execute(null)));
         return new ResponseEntity<>(successResponse,HttpStatus.OK);
+    }
+
+    @SecurityRequirements
+    @PostMapping("verify-otp")
+    public ResponseEntity<SuccessResponse<String>> verifyOtp(
+            @Valid @RequestBody OtpRequestDto request) throws EmailVerificationException {
+        verifyOtpUseCase.execute(request.getEmail(), request.getOtp());
+        return new ResponseEntity<>(
+                new SuccessResponse<>("success", "Email verified successfully. You can now log in.", null),
+                HttpStatus.OK
+        );
+    }
+
+    @SecurityRequirements
+    @PostMapping("resend-otp")
+    public ResponseEntity<SuccessResponse<String>> resendOtp(
+            @Valid @RequestBody ResendOtpRequestDto request) throws EmailVerificationException {
+        resendOtpUseCase.execute(request.getEmail());
+        return new ResponseEntity<>(
+                new SuccessResponse<>("success", "A new OTP has been sent to " + request.getEmail(), null),
+                HttpStatus.OK
+        );
     }
 
 }

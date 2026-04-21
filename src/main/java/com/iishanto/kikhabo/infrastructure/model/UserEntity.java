@@ -2,10 +2,7 @@ package com.iishanto.kikhabo.infrastructure.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.iishanto.kikhabo.domain.entities.people.AuthProvider;
 import com.iishanto.kikhabo.domain.entities.people.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -13,10 +10,9 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Length;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Data
@@ -52,6 +48,15 @@ public class UserEntity {
     private String dateOfBirth;
     private Float weightInKg;
     private Float heightInFt;
+
+    /** Whether the user has verified their email address. Social-login users are verified by default. */
+    private boolean verified;
+
+    /** 6-digit OTP code for email verification (null once verified). */
+    private String verificationCode;
+
+    /** Expiry timestamp for the OTP code. */
+    private LocalDateTime verificationCodeExpiry;
 
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "user",fetch = FetchType.LAZY)
     @JsonIgnoreProperties(ignoreUnknown = true)

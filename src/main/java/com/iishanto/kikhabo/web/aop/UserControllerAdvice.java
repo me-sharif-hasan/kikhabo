@@ -2,6 +2,7 @@ package com.iishanto.kikhabo.web.aop;
 
 import com.iishanto.kikhabo.common.exception.family.FamilyMemberCreationException;
 import com.iishanto.kikhabo.common.exception.global.GlobalServerException;
+import com.iishanto.kikhabo.common.exception.user.EmailVerificationException;
 import com.iishanto.kikhabo.common.exception.user.UserLoginFailureException;
 import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureException;
 import com.iishanto.kikhabo.web.response.ErrorCodes;
@@ -70,6 +71,13 @@ public class UserControllerAdvice {
     public ResponseEntity<ErrorResponse> handleFamilyMemberCreationException(FamilyMemberCreationException e){
         logger.info("FAMILY MEMBER CREATION EXCEPTION {}",e.getLocalizedMessage());
         ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.FAILURE_CREATING_FAMILY_MEMBER);
+        return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(EmailVerificationException.class)
+    public ResponseEntity<ErrorResponse> handleEmailVerificationException(EmailVerificationException e){
+        logger.debug("EMAIL VERIFICATION EXCEPTION {}",e.getLocalizedMessage());
+        ErrorResponse err=ErrorResponse.of(List.of(e.getLocalizedMessage()),ErrorCodes.INVALID_ARGUMENTS);
         return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
     }
 

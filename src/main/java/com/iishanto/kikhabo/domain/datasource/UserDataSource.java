@@ -1,6 +1,7 @@
 package com.iishanto.kikhabo.domain.datasource;
 
 import com.iishanto.kikhabo.common.exception.global.GlobalServerException;
+import com.iishanto.kikhabo.common.exception.user.EmailVerificationException;
 import com.iishanto.kikhabo.common.exception.user.UserLoginFailureException;
 import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureException;
 import com.iishanto.kikhabo.domain.entities.people.Credentials;
@@ -25,4 +26,16 @@ public interface UserDataSource {
 
     /** Returns only those user IDs from {@code userIds} whose country matches {@code country}. */
     List<Long> getUserIdsByCountry(String country, List<Long> userIds);
+
+    /**
+     * Generates a fresh 6-digit OTP, persists it (with a 10-minute expiry),
+     * and sends it to the user's email. Enforces a 2-minute resend cooldown.
+     */
+    void sendVerificationOtp(String email) throws EmailVerificationException;
+
+    /**
+     * Validates the OTP for the given email. On success marks the user verified
+     * and clears the OTP fields.
+     */
+    boolean verifyOtp(String email, String otp) throws EmailVerificationException;
 }
