@@ -51,6 +51,8 @@ jobs:
           spring.data.mongodb.uri=${{ secrets.MONGODB_URI }}
           pixabay.apikey=${{ secrets.PIXABAY_KEY }}
           calendarific.api.key=${{ secrets.CALENDARIFIC_KEY }}
+          spring.mail.username=${{ secrets.MAIL_USERNAME }}
+          spring.mail.password=${{ secrets.MAIL_PASSWORD }}
           EOT
 
           cat src/main/resources/application-prod.properties
@@ -122,4 +124,6 @@ jobs:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           PIXABAY_KEY: ${{ secrets.PIXABAY_KEY }}
           CALENDARIFIC_KEY: ${{ secrets.CALENDARIFIC_KEY }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
 

@@ -2,7 +2,6 @@ package com.iishanto.kikhabo.web.controller.v1;
 
 import com.iishanto.kikhabo.common.exception.user.EmailVerificationException;
 import com.iishanto.kikhabo.common.exception.user.UserRegistrationFailureException;
-import com.iishanto.kikhabo.domain.datasource.WeatherDataSource;
 import com.iishanto.kikhabo.domain.entities.people.Credentials;
 import com.iishanto.kikhabo.domain.entities.people.User;
 import com.iishanto.kikhabo.domain.usercase.user.*;
