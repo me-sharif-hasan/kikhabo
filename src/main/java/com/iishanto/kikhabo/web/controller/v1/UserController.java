@@ -32,7 +32,6 @@ public class UserController {
     UserLoginUseCase userLoginUseCase;
     SocialLoginUseCase socialLoginUseCase;
     UserUpdateUseCase userUpdateUseCase;
-    WeatherDataSource weatherDataSource;
     GetUserUseCase getUserUseCase;
     UserSearchUseCase userSearchUseCase;
     S3Service s3Service;
